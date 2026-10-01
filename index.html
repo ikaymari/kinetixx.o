@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<!--KAI WEBS-->
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Kinetix Organization | City College of Angeles</title>
+        <meta name="description"
+              content="KINETIX Organization is a student-led event management organization from City College of Angeles, specializing in planning and coordinating engaging events, sports activities, workshops, seminars, and other meaningful experiences. As Bachelor of Physical Education students with MICE electives, we combine creativity, teamwork, and event management skills to turn ideas into action.">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+              rel="stylesheet">
+        <link rel="stylesheet" href="kinetix-style.css">
+    </head>
+    <body>
+        <!-- ====================== TOP BAR ====================== -->
+        <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="navLinks" title="Toggle navigation">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <a class="college-mark" href="#hero" aria-label="Kinetix home">
+            <img src="images/kinetix-logo.svg" alt="Kinetix logo">
+        </a>
+        <nav class="topbar" aria-label="Main navigation">
+            <div class="nav-index" id="navLinks">
+                <a href="#hero">HOME</a>
+                <a href="#projects">PRODUCTS &amp; SERVICES</a>
+                <a href="#reveal">ABOUT US</a>
+                <a href="#initiate">CONTACT US</a>
+            </div>
+        </nav>
+        <!-- ====================== 01 HERO ====================== -->
+        <section class="hero" id="hero">
+            <h1 class="hero-title" aria-label="Kinetix Organization"><span>KIN<b>E</b>TIX</span><span class="hero-org">ORGANIZATION</span></h1>
+            <svg class="string-svg"
+                 id="stringSvg"
+                 preserveAspectRatio="none"
+                 aria-hidden="true">
+                <path class="string-path" id="stringPath"></path>
+                <circle class="string-anchor" id="anchorL" r="5"></circle>
+                <circle class="string-anchor" id="anchorR" r="5"></circle>
+                <circle class="string-grip"   id="grip"    r="7"></circle>
+            </svg>
+            <div class="hero-foot">
+                <p>KINETIX Organization is a student-led event management team from City College of Angeles that brings together Physical Education expertise and MICE event management skills to create dynamic and meaningful experiences. From sports activities and workshops to seminars and special events, we combine creativity, teamwork, and active-living principles to turn ideas into well-organized, engaging, and memorable events.</p>
+            </div>
+            <div class="hero-hint">[KAI]</div>
+        </section>
+        <!-- ====================== 02 MATRIX ====================== -->
+        <section class="matrix-wrap" id="projects">
+            <div class="section-head">
+                <h2>PRODUCTS &amp; SERVICES</h2>
+                <p>We turn ideas into engaging experiences through creative event concepts, seamless execution, and collaborative services. As a student-led event management organization, we deliver purposeful events that bring people together, inspire participation, and create meaningful and memorable experiences for students, schools, and communities. </p>
+            </div>
+            <div class="matrix category-grid" id="matrix">
+                <section class="category-column" aria-labelledby="category-products">
+                    <div class="category-heading">
+                        <span class="category-index">01</span>
+                        <h3 id="category-products">Products</h3>
+                        <span class="category-count">02</span>
+                    </div>
+                    <div class="category-items">
+                        <p class="cart-status" role="status" aria-live="polite"><span id="productCartCount">0</span> items added</p>
+                        <div class="product-card">
+                            <div class="cell" tabindex="0" role="button" aria-label="Soya Pop">
+                                <div class="cell-media" style="background-image:url('images/project-01.jpg')"></div>
+                                <div class="cell-num">01</div>
+                                <div class="cell-name">SOYA POP</div>
+                                <div class="cell-detail">A smooth soy drink with protein and vitamins, available in Original, Banana, and Cereal flavors.</div>
+                                <div class="cell-cat">Soya Pop</div>
+                            </div>
+                            <div class="product-card-actions">
+                                <span class="product-price">₱35.00</span>
+                                <button class="add-to-cart" type="button" data-product="soya-pop" data-name="Soya Pop" data-price="35">Add to cart</button>
+                            </div>
+                            <div class="product-flavor-picker" data-product="soya-pop">
+                                <label>Flavor</label>
+                                <select aria-label="Choose Soya Pop flavor">
+                                    <option value="Original">Original</option>
+                                    <option value="Banana">Banana</option>
+                                    <option value="Cereal">Cereal</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="product-card">
+                            <div class="cell" tabindex="0" role="button" aria-label="Nutflix">
+                                <div class="cell-media" style="background-image:url('images/project-02.jpg')"></div>
+                                <div class="cell-num">02</div>
+                                <div class="cell-name">NUTFLIX</div>
+                                <div class="cell-detail">A crunchy mix of nuts, seeds, and dried fruits for a quick, tasty, and satisfying snack.</div>
+                                <div class="cell-cat">Nutflix</div>
+                            </div>
+                            <div class="product-card-actions">
+                                <span class="product-price">₱50.00</span>
+                                <button class="add-to-cart" type="button" data-product="nutflix" data-name="Nutflix" data-price="50">Add to cart</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section class="category-column" aria-labelledby="category-services">
+                    <div class="category-heading">
+                        <span class="category-index">02</span>
+                        <h3 id="category-services">Services</h3>
+                        <span class="category-count">03</span>
+                    </div>
+                    <div class="category-items">
+                        <div class="cell" tabindex="0" role="button" aria-label="Event planning and coordination">
+                            <div class="cell-media" style="background-image:url('images/project-06.jpg')"></div>
+                            <div class="cell-num">03</div>
+                            <div class="cell-name">OFFICIATING EVENTS</div>
+                            <div class="cell-detail">BPE students gain hands-on experience in sports coaching, where they learn to train, guide, and motivate athletes toward improved performance. They develop skills in training planning, communication, leadership, teamwork, and athlete development, preparing them for future careers as professional coaches and Physical Education practitioners.</div>
+                            <div class="cell-cat">Officiating</div>
+                        </div>
+                        <div class="cell" tabindex="0" role="button" aria-label="Workshops and seminars">
+                            <div class="cell-media" style="background-image:url('images/project-05.jpg')"></div>
+                            <div class="cell-num">04</div>
+                            <div class="cell-name">PRE-SERVICE</div>
+                            <div class="cell-detail">The Bachelor of Physical Education (BPE) program provides pre-service teachers with opportunities to gain practical experience and firsthand knowledge in actual school settings. Through classroom observation, interaction with learners, and teaching practice, students learn from experienced educators and apply their knowledge and skills in a real teaching environment. </div>
+                            <div class="cell-cat">Learning &amp; Development</div>
+                        </div>
+                        <div class="cell" tabindex="0" role="button" aria-label="Creative event concepts">
+                            <div class="cell-media" style="background-image:url('images/project-09.jpg')"></div>
+                            <div class="cell-num">05</div>
+                            <div class="cell-name">EVENT CONCEPTS</div>
+                            <div class="cell-detail">Creative themes and clear event plans shaped around each audience and occasion.</div>
+                            <div class="cell-cat">Creative Direction</div>
+                        </div>
+                    </div>
+                </section>
+                <section class="category-column" aria-labelledby="category-events">
+                    <div class="category-heading">
+                        <span class="category-index">03</span>
+                        <h3 id="category-events">Events</h3>
+                        <span class="category-count">04</span>
+                    </div>
+                    <div class="category-items">
+                        <div class="cell" tabindex="0" role="button" aria-label="Next Level PE seminar">
+                            <div class="cell-media" style="background-image:url('images/project-03.jpg')"></div>
+                            <div class="cell-num">06</div>
+                            <div class="cell-name">SEMINAR</div>
+                            <div class="cell-detail">Held on April 10, 2026, “NEXT-LEVEL PE: Strategy, Leadership, and Success” was successfully organized by the 4th-year Bachelor of Physical Education students of City College of Angeles under KINETIX Organization, in collaboration with Victory Vault, as part of our event subject requirement. The seminar brought together 2nd-year BPE students for a day of learning and inspiration, focusing on strategy, leadership, teamwork, and success in Physical Education. Participants shared positive feedback, highlighting the event as a meaningful and enjoyable experience filled with valuable knowledge, fresh insights, and memorable moments.</div>
+                            <div class="cell-cat">Next Level PE</div>
+                        </div>
+                        <div class="cell" tabindex="0" role="button" aria-label="Sports and recreation events">
+                            <div class="cell-media" style="background-image:url('images/project-04.jpg')"></div>
+                            <div class="cell-num">07</div>
+                            <div class="cell-name">Research Alcu Conference </div>
+                            <div class="cell-detail">Held on September 29, 2026, BPE students demonstrated excellence not only in Physical Education but also in academics. Through research and innovation, they showcased their skills beyond the classroom, including their participation in the ALCU Regional Research Conference. Their achievements reflect their dedication, knowledge, and well-rounded excellence as future Physical Education professionals.</div>
+                            <div class="cell-cat">Research Alcu Conference</div>
+                        </div>
+                        <div class="cell" tabindex="0" role="button" aria-label="Community events">
+                            <div class="cell-media" style="background-image:url('images/project-07.jpg')"></div>
+                            <div class="cell-num">08</div>
+                            <div class="cell-name">P.E Days</div>
+                            <div class="cell-detail">PE Days at City College of Angeles held on September 24/25, 2026, celebrated fitness, teamwork, and healthy living through engaging activities and Mr. and Ms. Fitness. With the support of 4th year BPE students, the event showcased student talents, built confidence, and strengthened connections through Physical Education.</div>
+                            <div class="cell-cat">P.E Days</div>
+                        </div>
+                        <div class="cell" tabindex="0" role="button" aria-label="Team-building activities">
+                            <div class="cell-media" style="background-image:url('images/project-08.jpg')"></div>
+                            <div class="cell-num">09</div>
+                            <div class="cell-name">CCA DAYS</div>
+                            <div class="cell-detail">CCA Days celebrates the skills, talents, and abilities of City College of Angeles students through culture, sports, creativity, and teamwork. It provides a platform for students to showcase their potential, build connections, and celebrate achievements as one CCA community. </div>
+                            <div class="cell-cat">CCA Days</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+        <!-- ====================== 03 LENTICULAR ====================== -->
+        <section class="reveal" id="reveal">
+            <div class="reveal-cap">
+                <span class="mono-label">ABOUT US</span>
+                <h2>Made to bring<i> people </i>together</h2>
+                <p>Kinetix is a student-led event management organization made up of fourth-year Bachelor of Physical Education students at City College of Angeles. Through our Event Management subject, we put our learning into practice by planning meaningful activities that encourage movement, teamwork, leadership, and active living.</p>
+            </div>
+            <div class="lenti-stage" id="lentiStage">
+                <div class="lenti" id="lenti" aria-hidden="true"
+                     data-front="images/po.jpg"
+         data-back="images/tu.jpg"></div>
+            </div>
+
+            <div class="purpose-grid">
+                <div class="purpose-item">
+                    <span class="mono-label">Our mission</span>
+                    <p>We turn ideas into impactful, well-coordinated events through creativity, collaboration, and purposeful planning.</p>
+                </div>
+                <div class="purpose-item">
+                    <span class="mono-label">Our vision</span>
+                    <p>To be a trusted event organization creating accessible experiences that inspire action and strengthen communities.</p>
+                </div>
+            </div>
+        </section>
+        <!-- ====================== 04 INITIATE ====================== -->
+        <footer class="initiate" id="initiate">
+            <div class="initiate-inner">
+                <span class="mono-label">Have an event in mind?</span>
+                <h2 class="scatter" id="scatter" data-lines="LET'S MAKE IT|HAPPEN" aria-label="LET'S MAKE IT HAPPEN">LET'S MAKE IT HAPPEN</h2>
+                <div class="contact-wrap" id="contactWrap">
+                    <div class="contact-grid" aria-label="Contact information">
+                        <section class="contact-item">
+                            <h3>Contact</h3>
+                            <a class="contact-link" href="tel:+639367427515">
+                                <svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M7 3h3l2 5-2.2 1.8a15 15 0 0 0 4.4 4.4L16 12l5 2v3c0 1.1-.9 2-2 2C10.7 19 5 13.3 5 6c0-1.7.8-3 2-3Z"/></svg>
+                                <span>0936-742-7515</span>
+                            </a>
+                            <a class="contact-link" href="mailto:kinetixorg.2026@gmail.com">
+                                <svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>
+                                <span>kinetixorg.2026@gmail.com</span>
+                            </a>
+                        </section>
+                        <section class="contact-item">
+                            <h3>Find us</h3>
+                            <a class="contact-link" href="https://www.google.com/maps/search/?api=1&amp;query=Arayat+Blvd%2C+Brgy+Pampanga%2C+Angeles+City" target="_blank" rel="noopener noreferrer">
+                                <svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+                                <span>Arayat Blvd, Brgy Pampanga,<br>Angeles City</span>
+                            </a>
+                            <p class="contact-meta"><svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 9h.01M15 9h.01M9 12h.01M15 12h.01"/></svg><span>Physical Location: L401</span></p>
+                        </section>
+                        <section class="contact-item">
+                            <h3>Hours &amp; social</h3>
+                            <p class="contact-meta"><svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>8:00 AM – 5:00 PM</span></p>
+                            <div class="contact-social">
+                                <a href="https://www.facebook.com/profile.php?id=61587836133745" target="_blank" rel="noopener noreferrer"><svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M14 21v-8h3l.5-4H14V7c0-1.2.4-2 2-2h2V1.4C17.2 1.2 16.2 1 15 1c-3.2 0-5 1.9-5 5.4V9H7v4h3v8"/></svg><span>Facebook</span></a>
+                                <a href="https://www.instagram.com/kinetix_org/" target="_blank" rel="noopener noreferrer"><svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg><span>Instagram</span></a>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+            <div class="sig-foot">
+                <span>Kinetix Organization · City College of Angeles</span>
+                <span>Student-led events, thoughtfully made</span>
+            </div>
+        </footer>
+
+        <section class="legal-section" aria-label="Legal information">
+            <div class="legal-wrap">
+                <div class="legal-intro">
+                    <span class="mono-label">Legal</span>
+                    <h2>Privacy Policy &amp; Terms</h2>
+                </div>
+
+                <div class="legal-list">
+                    <details class="legal-item" open>
+                        <summary>Privacy Policy</summary>
+                        <div class="legal-content">
+                            <p>KINETIX Organization respects your privacy and is committed to protecting the personal information you provide when you visit our website, communicate with our organization, or participate in our events and activities. This Privacy Policy explains what information we may collect, how we use it, how we protect it, and the choices you have regarding your information.</p>
+
+                            <h3>1. Information We Collect</h3>
+                            <p>Depending on how you interact with our website and organization, we may collect information such as:</p>
+                            <ul>
+                                <li>Name and contact information</li>
+                                <li>Email address and other communication details</li>
+                                <li>Event registration or participation information</li>
+                                <li>Organization, school, or affiliation, when relevant to an event</li>
+                                <li>Information voluntarily provided through contact forms, registration forms, surveys, or inquiries</li>
+                                <li>Technical information necessary for the operation and security of the website</li>
+                            </ul>
+                            <p>We only request information that is reasonably necessary for the purpose for which it is collected.</p>
+
+                            <h3>2. How We Use Your Information</h3>
+                            <p>Information provided to KINETIX may be used to:</p>
+                            <ul>
+                                <li>Process event registrations and participation</li>
+                                <li>Respond to inquiries and requests</li>
+                                <li>Communicate important event announcements and updates</li>
+                                <li>Coordinate programs, workshops, seminars, sports activities, and other events</li>
+                                <li>Improve our services, programs, and website</li>
+                                <li>Maintain the security and proper operation of our website</li>
+                                <li>Comply with applicable school policies and legal requirements</li>
+                            </ul>
+                            <p>We will not use your personal information for unrelated purposes without appropriate notice or consent.</p>
+
+                            <h3>3. Sharing of Information</h3>
+                            <p>KINETIX does not sell or rent personal information. Information may only be shared when reasonably necessary to conduct an event or activity, fulfill a requested service, comply with applicable requirements, or when you have provided appropriate permission. When an activity involves third-party partners, sponsors, venues, or service providers, information will only be shared when necessary for the relevant activity and subject to applicable privacy requirements.</p>
+
+                            <h3>4. Photographs and Event Documentation</h3>
+                            <p>KINETIX may document its events through photographs, videos, or other media for legitimate organizational purposes, such as event documentation, reports, and promotional materials. Where required, appropriate consent or permission will be obtained before using identifiable photographs or recordings, particularly for promotional purposes. If you have concerns regarding the use of your image or personal information, you may contact KINETIX through the contact details provided on our website.</p>
+
+                            <h3>5. Data Protection</h3>
+                            <p>We take reasonable measures to protect personal information against unauthorized access, disclosure, alteration, loss, or misuse. However, no online system can be guaranteed to be completely secure. Users should avoid submitting unnecessary sensitive or confidential information through public or unsecured channels.</p>
+
+                            <h3>6. Data Retention</h3>
+                            <p>Personal information will only be retained for as long as reasonably necessary to fulfill the purpose for which it was collected, comply with applicable requirements, or support legitimate organizational activities. When information is no longer necessary, appropriate measures may be taken to securely delete, destroy, or anonymize it.</p>
+
+                            <h3>7. Your Privacy Rights</h3>
+                            <p>Subject to applicable laws, regulations, and school policies, you may have rights regarding your personal information, including the right to:</p>
+                            <ul>
+                                <li>Know what personal information is being collected and how it is used</li>
+                                <li>Request access to information concerning you</li>
+                                <li>Request correction of inaccurate information</li>
+                                <li>Raise concerns regarding the handling of your personal information</li>
+                                <li>Withdraw consent where applicable</li>
+                            </ul>
+                            <p>For privacy-related concerns, please contact KINETIX through the contact information provided on this website.</p>
+
+                            <h3>8. Changes to This Privacy Policy</h3>
+                            <p>KINETIX may update this Privacy Policy when necessary to reflect changes in our activities, website, policies, or applicable requirements. Any significant changes will be communicated through the website or other appropriate channels.</p>
+                        </div>
+                    </details>
+
+                    <details class="legal-item">
+                        <summary>Terms and Conditions</summary>
+                        <div class="legal-content">
+                            <p>Welcome to the KINETIX Organization website. By accessing or using this website, you agree to follow these Terms and Conditions. If you do not agree with these terms, please discontinue use of the website.</p>
+
+                            <h3>1. About KINETIX</h3>
+                            <p>KINETIX Organization is a student-led event management organization composed of fourth-year Bachelor of Physical Education students with electives in Meetings, Incentives, Conventions, and Exhibitions (MICE) from City College of Angeles. Our activities may include sports programs, seminars, workshops, games, dance activities, recreational programs, and other events.</p>
+
+                            <h3>2. Use of the Website</h3>
+                            <p>You agree to use this website responsibly and only for lawful purposes. You must not:</p>
+                            <ul>
+                                <li>Use the website for fraudulent or unlawful activities</li>
+                                <li>Submit false or misleading information</li>
+                                <li>Attempt to interfere with the operation or security of the website</li>
+                                <li>Access information or accounts without authorization</li>
+                                <li>Upload or transmit harmful software or content</li>
+                                <li>Use website content in a manner that violates applicable laws or the rights of others</li>
+                            </ul>
+
+                            <h3>3. Event Registration</h3>
+                            <p>Some KINETIX events may require registration. By submitting an event registration form, you agree to provide accurate and complete information. Registration does not automatically guarantee participation unless confirmation is provided by KINETIX or the authorized event organizers. Event schedules, venues, requirements, fees, and other details may be changed when necessary. Participants will be informed of significant changes through appropriate communication channels.</p>
+
+                            <h3>4. Event Participation</h3>
+                            <p>Participants are expected to follow the rules, safety guidelines, instructions, and reasonable directions provided by KINETIX and event organizers. Participants may be required to comply with applicable school policies and venue regulations. KINETIX reserves the right to address disruptive, unsafe, or inappropriate conduct in accordance with applicable policies and procedures.</p>
+
+                            <h3>5. Intellectual Property</h3>
+                            <p>Unless otherwise indicated, materials appearing on this website—including the KINETIX name, logo, graphics, original text, photographs, and other original content—belong to or are used with permission by KINETIX or the respective rights holder. You may not reproduce, modify, distribute, or use protected materials for commercial purposes without appropriate permission.</p>
+
+                            <h3>6. Third-Party Links</h3>
+                            <p>The website may contain links to external websites, social media pages, registration platforms, or other third-party services. These websites are operated independently from KINETIX. We are not responsible for the content, privacy practices, availability, or security of external websites. Users should review the terms and privacy policies of third-party websites before providing personal information.</p>
+
+                            <h3>7. Website Content</h3>
+                            <p>KINETIX makes reasonable efforts to provide accurate and updated information on the website. However, event details, schedules, availability, and other information may change. KINETIX reserves the right to correct, update, or remove website content when necessary.</p>
+
+                            <h3>8. Limitation of Responsibility</h3>
+                            <p>KINETIX aims to provide reliable information and well-organized activities. However, the organization cannot guarantee that the website will always be available, error-free, or free from technical interruptions. Participation in physical activities and events may involve inherent risks. Participants are expected to follow applicable safety instructions and disclose relevant information when required by the event's procedures.</p>
+
+                            <h3>9. Changes to These Terms</h3>
+                            <p>KINETIX may update these Terms and Conditions when necessary. Updated terms will be posted on this website with the corresponding effective date. Continued use of the website after an update constitutes acknowledgment of the revised terms, subject to applicable law and school policies.</p>
+
+                            <h3>10. Contact Us</h3>
+                            <p>If you have questions, concerns, or requests regarding this Privacy Policy or these Terms and Conditions, please contact:</p>
+                            <p><strong>KINETIX Organization</strong><br>
+                            Email: <a href="mailto:kinetixorg.2026@gmail.com">kinetixorg.2026@gmail.com</a><br>
+                            Phone: <a href="tel:+639367427515">0936-742-7515</a><br>
+                            Address: Arayat Blvd, Brgy Pampanga, Angeles City</p>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+        <aside class="cart-widget" aria-label="Shopping cart">
+            <div class="cart-panel" id="cartPanel" role="region" aria-labelledby="cartHeading" hidden>
+                <div class="cart-panel-head">
+                    <h2 id="cartHeading">Your cart</h2>
+                    <button class="cart-close" id="cartClose" type="button" aria-label="Close cart">&times;</button>
+                </div>
+                <p class="cart-empty" id="cartEmpty">Your cart is empty.</p>
+                <div class="cart-items" id="cartItems"></div>
+                <p class="cart-message" id="cartMessage" role="status" aria-live="polite"></p>
+                <div class="cart-panel-foot">
+                    <span><span id="cartTotalQuantity">0</span> items</span>
+                    <button class="cart-clear" id="cartClear" type="button" disabled>Clear cart</button>
+                </div>
+                <div class="cart-summary">
+                    <span>Total</span>
+                    <strong id="cartTotalPrice">₱0.00</strong>
+                </div>
+                <button class="checkout-btn" id="checkoutBtn" type="button" disabled>Checkout</button>
+            </div>
+            <button class="cart-toggle" id="cartToggle" type="button" aria-label="Open shopping cart" aria-expanded="false" aria-controls="cartPanel" title="Shopping cart">
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M5 8h14l1 13H4L5 8Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>
+                <span class="cart-badge" id="cartBadge" hidden>0</span>
+            </button>
+        </aside>
+        <aside class="faq-widget" aria-label="Frequently asked questions">
+            <div class="faq-panel" id="faqPanel" role="region" aria-labelledby="faqHeading" hidden>
+                <div class="faq-panel-head">
+                    <h2 id="faqHeading">Frequently Asked Questions</h2>
+                    <button class="faq-close" id="faqClose" type="button" aria-label="Close frequently asked questions">&times;</button>
+                </div>
+                <div class="faq-list">
+                    <details>
+                        <summary>What is Kinetix Organization?</summary>
+                        <p>Kinetix Organization is a digital organization that provides information, services, resources, and experiences designed to connect and engage people.</p>
+                    </details>
+                    <details>
+                        <summary>What is the purpose of the Kinetix Organization website?</summary>
+                        <p> The website serves as a digital hub where visitors can learn about the organization, explore its services and products, and find ways to contact the team. </p>
+                    </details>
+                    <details>
+                        <summary>Where are you located?</summary>
+                        <p>Find us at L401, Arayat Boulevard, Barangay Pampanga, Angeles City.</p>
+                    </details>
+                    <details>
+                        <summary>What are your business hours?</summary>
+                        <p>We are available from 8:00 AM to 5:00 PM.</p>
+                    </details>
+                    <details>
+                        <summary>How can I contact Kinetix Organization directly?</summary>
+                        <p> You can contact Kinetix through 0936-742-7515 or kinetixorg.2026@gmail.com</p>
+                    </details>
+                </div>
+            </div>
+            <button class="faq-toggle" id="faqToggle" type="button" aria-label="Open frequently asked questions" aria-expanded="false" aria-controls="faqPanel" title="Frequently asked questions">
+                <span class="faq-toggle-mark" aria-hidden="true">?</span>
+                <span class="faq-toggle-label" aria-hidden="true">FAQ</span>
+            </button>
+        </aside>
+        <script src="kinetix-script.js"></script>
+    </body>
+</html>
