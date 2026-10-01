@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">Kinetix</title>
+  <desc id="desc">Kinetix esports emblem in blue, yellow, and orange.</desc>
+  <defs>
+    <linearGradient id="spectrum" x1=".08" y1=".14" x2=".9" y2=".86">
+      <stop offset="0" stop-color="#10d9ff"/>
+      <stop offset=".42" stop-color="#187aff"/>
+      <stop offset=".58" stop-color="#ffe51b"/>
+      <stop offset=".8" stop-color="#ff7a00"/>
+      <stop offset="1" stop-color="#ff3029"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#5ff5ff"/>
+      <stop offset="1" stop-color="#0875ff"/>
+    </linearGradient>
+    <linearGradient id="fire" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#fff454"/>
+      <stop offset="1" stop-color="#ff481f"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="2.2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <circle cx="128" cy="128" r="119" fill="#03070d" stroke="url(#spectrum)" stroke-width="4"/>
+  <circle cx="128" cy="128" r="111" fill="none" stroke="#16334b" stroke-width="1"/>
+  <g fill="none" stroke="url(#spectrum)" stroke-linecap="round" filter="url(#glow)">
+    <path d="M27 133c12-48 40-77 80-91" stroke-width="4"/>
+    <path d="M24 148c8-23 18-38 36-50M225 75c-5 11-12 20-21 27" stroke-width="2.5"/>
+    <path d="M225 137c-13 48-41 77-80 91" stroke-width="4"/>
+    <path d="M231 121c-7 23-18 39-36 51" stroke-width="2.5"/>
+  </g>
+  <g stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <g stroke="url(#blue)" stroke-width="6">
+      <circle cx="70" cy="55" r="8" fill="#48ddff" stroke="none"/>
+      <path d="m69 66 13 16-10 16-16-5-11 14M78 79l16-8 12 8M74 97l-6 18 14 9M56 93l-14-4-9 8"/>
+      <path d="M31 127c11-11 20-17 31-19M35 139c11-10 23-15 36-17" stroke-width="3"/>
+    </g>
+    <g stroke="url(#fire)" stroke-width="6">
+      <circle cx="188" cy="55" r="8" fill="#ffd52b" stroke="none"/>
+      <path d="m186 66-10 16 11 15 17-5 9 14M180 79l-15-8-12 8M187 97l7 18-13 9M204 92l14-4 9 8"/>
+      <path d="M226 127c-11-11-20-17-31-19M222 139c-11-10-23-15-36-17" stroke-width="3"/>
+    </g>
+  </g>
+  <g transform="translate(87 37)" fill="#eaf8ff" stroke="#0d3555" stroke-width="2">
+    <path d="M9 11c-6 0-9 5-8 11l3 13c1 5 5 7 9 4l8-7h24l8 7c4 3 8 1 9-4l3-13c1-6-2-11-8-11z"/>
+    <path d="M15 17v12M9 23h12" stroke="#0875db" stroke-width="4"/>
+    <circle cx="47" cy="21" r="2.5" fill="#f7c900" stroke="none"/>
+    <circle cx="53" cy="27" r="2.5" fill="#ff5d27" stroke="none"/>
+  </g>
+  <path d="m50 144 26-17 9 8-19 26 29-7 8 12-30 24-11-7 16-15-27 8-8-9 17-22-23 9z" fill="url(#blue)" opacity=".9"/>
+  <path d="m202 145-25-17-9 8 18 26-28-7-9 12 29 24 11-7-15-15 26 8 9-9-17-22 22 9z" fill="url(#fire)" opacity=".9"/>
+  <text x="91" y="156" fill="url(#blue)" font-family="Impact, Haettenschweiler, sans-serif" font-size="76" font-style="italic" font-weight="900" text-anchor="middle" stroke="#061726" stroke-width="2" paint-order="stroke">K</text>
+  <text x="163" y="156" fill="url(#fire)" font-family="Impact, Haettenschweiler, sans-serif" font-size="76" font-style="italic" font-weight="900" text-anchor="middle" stroke="#29110a" stroke-width="2" paint-order="stroke">X</text>
+  <path d="m124 106-12 34h13l-4 20 24-38h-15l8-16z" fill="#ffe532" stroke="#ffb300" stroke-width="1"/>
+  <text x="128" y="191" fill="#f4f6fa" font-family="Arial, sans-serif" font-size="21" font-weight="900" letter-spacing="5" text-anchor="middle">KINETIX</text>
+  <text x="128" y="204" fill="#dce6f0" font-family="Arial, sans-serif" font-size="5.8" font-weight="700" letter-spacing="1.25" text-anchor="middle">X ON TRACK, NEVER LOOK BACK</text>
+</svg>
