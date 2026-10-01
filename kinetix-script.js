@@ -688,6 +688,84 @@
         if (!buttons.length || !productCount || !cartToggle || !cartPanel) return;
 
         var cartEndpoint = window.location.protocol === 'file:' ? 'http://127.0.0.1:5087/api/cart' : '/api/cart';
+        var useBrowserCart = window.location.hostname === 'github.io' || window.location.hostname.endsWith('.github.io');
+        var browserCartKey = 'kinetix-cart-v1';
+
+        function readBrowserCart() {
+            var savedCart = window.localStorage.getItem(browserCartKey);
+            if (!savedCart) return [];
+
+            var items = JSON.parse(savedCart);
+            if (!Array.isArray(items) || items.some(function(item) {
+                return !item || typeof item.productId !== 'string' ||
+                    typeof item.name !== 'string' || !Number.isInteger(item.quantity) ||
+                    item.quantity < 1 || !buttons.some(function(button) {
+                        return button.dataset.product === item.productId;
+                    });
+            })) {
+                throw new Error('Saved cart data is invalid.');
+            }
+            return items;
+        }
+
+        function browserCartSnapshot(items) {
+            return {
+                items: items,
+                totalQuantity: items.reduce(function(total, item) {
+                    return total + item.quantity;
+                }, 0)
+            };
+        }
+
+        function requestBrowserCart(path, method, data) {
+            var items = readBrowserCart();
+            if (method === 'GET') return browserCartSnapshot(items);
+
+            if (method === 'DELETE' && !path) {
+                items = [];
+            } else if (method === 'POST' && path === '/items') {
+                var button = buttons.find(function(entry) {
+                    return entry.dataset.product === (data && data.productId);
+                });
+                if (!button) throw new Error('Choose a valid product.');
+                var existingItem = items.find(function(item) {
+                    return item.productId === button.dataset.product;
+                });
+                var name = data && typeof data.name === 'string' ? data.name : button.dataset.name;
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                    existingItem.name = name;
+                } else {
+                    items.push({ productId: button.dataset.product, name: name, quantity: 1 });
+                }
+            } else {
+                var decrementMatch = path.match(/^\/items\/([^/]+)\/decrement$/);
+                var itemMatch = path.match(/^\/items\/([^/]+)$/);
+                if (method === 'POST' && decrementMatch) {
+                    var decrementId = decodeURIComponent(decrementMatch[1]);
+                    var decrementIndex = items.findIndex(function(item) {
+                        return item.productId.toLowerCase() === decrementId.toLowerCase();
+                    });
+                    if (decrementIndex >= 0) {
+                        if (items[decrementIndex].quantity > 1) {
+                            items[decrementIndex].quantity -= 1;
+                        } else {
+                            items.splice(decrementIndex, 1);
+                        }
+                    }
+                } else if (method === 'DELETE' && itemMatch) {
+                    var removeId = decodeURIComponent(itemMatch[1]).toLowerCase();
+                    items = items.filter(function(item) {
+                        return item.productId.toLowerCase() !== removeId;
+                    });
+                } else {
+                    throw new Error('Unsupported cart operation.');
+                }
+            }
+
+            window.localStorage.setItem(browserCartKey, JSON.stringify(items));
+            return browserCartSnapshot(items);
+        }
 
         function formatPrice(value) {
             return '₱' + Number(value).toFixed(2);
@@ -704,6 +782,7 @@
         }
 
         async function requestCart(path, method, data) {
+            if (useBrowserCart) return requestBrowserCart(path, method, data);
             var options = { method: method };
             if (data) {
                 options.headers = { 'Content-Type': 'application/json' };
@@ -811,10 +890,17 @@
             cartMessage.textContent = '';
             try {
                 renderCart(await requestCart(path, method, data));
+                if (useBrowserCart) {
+                    cartMessage.textContent = 'Cart saved in this browser only; it does not sync across devices.';
+                }
             } catch (error) {
-                cartEmpty.hidden = true;
-                cartItems.replaceChildren();
-                cartMessage.textContent = 'Cart server unavailable. Start the backend to sync changes.';
+                if (useBrowserCart) {
+                    cartMessage.textContent = 'Unable to save the cart in this browser. Check browser storage settings.';
+                } else {
+                    cartEmpty.hidden = true;
+                    cartItems.replaceChildren();
+                    cartMessage.textContent = 'Cart server unavailable. Start the backend to sync changes.';
+                }
             }
         }
 
@@ -862,11 +948,17 @@
 
         requestCart('', 'GET').then(function(snapshot) {
             renderCart(snapshot);
-            cartMessage.textContent = '';
+            cartMessage.textContent = useBrowserCart
+                ? 'Cart saved in this browser only; it does not sync across devices.'
+                : '';
         }).catch(function() {
-            cartEmpty.hidden = true;
-            cartItems.replaceChildren();
-            cartMessage.textContent = 'Cart server unavailable. Start the backend from the VS Code task or run dotnet run from backend.';
+            if (useBrowserCart) {
+                cartMessage.textContent = 'Unable to load the cart from this browser. Check browser storage settings.';
+            } else {
+                cartEmpty.hidden = true;
+                cartItems.replaceChildren();
+                cartMessage.textContent = 'Cart server unavailable. Start the backend from the VS Code task or run dotnet run from backend.';
+            }
         });
     })();
 
