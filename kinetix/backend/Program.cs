@@ -100,8 +100,17 @@ app.MapPost("/api/cart/items", async (AddItemRequest request) =>
     await cartLock.WaitAsync();
     try
     {
-        var itemName = string.IsNullOrWhiteSpace(request.Name) ? name : request.Name;
         var index = cart.FindIndex(item => item.ProductId == request.ProductId);
+        var itemName = name;
+        if (!string.IsNullOrWhiteSpace(request.Name))
+        {
+            itemName = request.Name;
+        }
+        else if (index >= 0)
+        {
+            itemName = cart[index].Name;
+        }
+
         if (index >= 0)
         {
             cart[index] = cart[index] with { Quantity = cart[index].Quantity + 1, Name = itemName };
