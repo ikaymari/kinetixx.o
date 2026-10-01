@@ -731,11 +731,11 @@
                 var existingItem = items.find(function(item) {
                     return item.productId === button.dataset.product;
                 });
-                var name = data && typeof data.name === 'string' ? data.name : button.dataset.name;
                 if (existingItem) {
                     existingItem.quantity += 1;
-                    existingItem.name = name;
+                    if (data && typeof data.name === 'string') existingItem.name = data.name;
                 } else {
+                    var name = data && typeof data.name === 'string' ? data.name : button.dataset.name;
                     items.push({ productId: button.dataset.product, name: name, quantity: 1 });
                 }
             } else {
@@ -805,7 +805,10 @@
             button.type = 'button';
             button.textContent = label;
             button.setAttribute('aria-label', accessibleLabel);
-            button.addEventListener('click', action);
+            button.addEventListener('click', function(event) {
+                event.stopPropagation();
+                action();
+            });
             return button;
         }
 
