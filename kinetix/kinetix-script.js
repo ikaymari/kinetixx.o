@@ -760,7 +760,8 @@
         if (!buttons.length || !productCount || !cartToggle || !cartPanel) return;
 
         var cartEndpoint = window.location.protocol === 'file:' ? 'http://127.0.0.1:5087/api/cart' : '/api/cart';
-        var useBrowserCart = window.location.hostname === 'github.io' || window.location.hostname.endsWith('.github.io');
+        var useBrowserCart = true;
+        var lastItems = [];
         var browserCartKey = 'kinetix-cart-v1';
 
         function readBrowserCart() {
@@ -800,15 +801,15 @@
                     return entry.dataset.product === (data && data.productId);
                 });
                 if (!button) throw new Error('Choose a valid product.');
+                var itemKey = data && data.flavor ? button.dataset.product + ':' + data.flavor : button.dataset.product;
                 var existingItem = items.find(function(item) {
-                    return item.productId === button.dataset.product;
+                    return (item.key || item.productId) === itemKey;
                 });
                 if (existingItem) {
                     existingItem.quantity += 1;
-                    if (data && typeof data.name === 'string') existingItem.name = data.name;
                 } else {
                     var name = data && typeof data.name === 'string' ? data.name : button.dataset.name;
-                    items.push({ productId: button.dataset.product, name: name, quantity: 1 });
+                    items.push({ key: itemKey, productId: button.dataset.product, name: name, quantity: 1 });
                 }
             } else {
                 var decrementMatch = path.match(/^\/items\/([^/]+)\/decrement$/);
@@ -816,7 +817,7 @@
                 if (method === 'POST' && decrementMatch) {
                     var decrementId = decodeURIComponent(decrementMatch[1]);
                     var decrementIndex = items.findIndex(function(item) {
-                        return item.productId.toLowerCase() === decrementId.toLowerCase();
+                        return (item.key || item.productId).toLowerCase() === decrementId.toLowerCase();
                     });
                     if (decrementIndex >= 0) {
                         if (items[decrementIndex].quantity > 1) {
@@ -828,7 +829,7 @@
                 } else if (method === 'DELETE' && itemMatch) {
                     var removeId = decodeURIComponent(itemMatch[1]).toLowerCase();
                     items = items.filter(function(item) {
-                        return item.productId.toLowerCase() !== removeId;
+                        return (item.key || item.productId).toLowerCase() !== removeId;
                     });
                 } else {
                     throw new Error('Unsupported cart operation.');
@@ -886,6 +887,7 @@
 
         function renderCart(snapshot) {
             var items = snapshot.items || [];
+            lastItems = items;
             var totalQuantity = snapshot.totalQuantity || 0;
             var totalPrice = items.reduce(function(sum, item) {
                 return sum + (getProductPrice(item.productId) * item.quantity);
@@ -906,38 +908,35 @@
                 var item = items.find(function(entry) {
                     return entry.productId === button.dataset.product;
                 });
+                var count = items.filter(function(entry) {
+                    return entry.productId === button.dataset.product;
+                }).reduce(function(sum, entry) { return sum + entry.quantity; }, 0);
                 button.classList.toggle('is-added', !!item);
-                button.textContent = item ? (item.quantity > 1 ? 'Add another (' + item.quantity + ')' : 'Added to cart') : 'Add to cart';
-                button.setAttribute('aria-label', item ? button.dataset.name + ', quantity ' + item.quantity + ' in cart. Add another.' : 'Add ' + button.dataset.name + ' to cart');
-            });
-
-            document.querySelectorAll('.product-flavor-picker').forEach(function(picker) {
-                var productId = picker.getAttribute('data-product');
-                var item = items.find(function(entry) {
-                    return entry.productId === productId;
-                });
-                if (item) {
-                    var selected = item.name.split(' - ')[1] || item.name;
-                    var select = picker.querySelector('select');
-                    if (select && selected && Array.prototype.indexOf.call(select.options, select.querySelector('option[value="' + selected + '"]')) >= 0) {
-                        select.value = selected;
-                    }
-                }
+                button.textContent = item ? (count > 1 ? 'Add another (' + count + ')' : 'Added to cart') : 'Add to cart';
+                button.setAttribute('aria-label', item ? button.dataset.name + ', quantity ' + count + ' in cart. Add another.' : 'Add ' + button.dataset.name + ' to cart');
             });
 
             items.forEach(function(item) {
+                var itemKey = item.key || item.productId;
                 var row = document.createElement('div');
                 row.className = 'cart-item';
 
                 var name = document.createElement('span');
                 name.className = 'cart-item-name';
-                name.textContent = item.name;
+                var parts = item.name.split(' - ');
+                name.textContent = parts[0];
+                if (parts[1]) {
+                    var flavorTag = document.createElement('small');
+                    flavorTag.className = 'cart-item-flavor';
+                    flavorTag.textContent = 'Flavor: ' + parts[1];
+                    name.appendChild(flavorTag);
+                }
                 row.appendChild(name);
 
                 var controls = document.createElement('div');
                 controls.className = 'cart-item-controls';
                 controls.appendChild(makeAction('-', 'Remove one ' + item.name, async function() {
-                    await updateCart('/items/' + encodeURIComponent(item.productId) + '/decrement', 'POST');
+                    await updateCart('/items/' + encodeURIComponent(itemKey) + '/decrement', 'POST');
                 }));
 
                 var quantity = document.createElement('span');
@@ -945,10 +944,10 @@
                 quantity.textContent = item.quantity;
                 controls.appendChild(quantity);
                 controls.appendChild(makeAction('+', 'Add one ' + item.name, async function() {
-                    await updateCart('/items', 'POST', { productId: item.productId });
+                    await updateCart('/items', 'POST', { productId: item.productId, name: item.name, flavor: item.key ? item.key.split(':')[1] : undefined });
                 }));
                 controls.appendChild(makeAction('×', 'Remove ' + item.name + ' from cart', async function() {
-                    await updateCart('/items/' + encodeURIComponent(item.productId), 'DELETE');
+                    await updateCart('/items/' + encodeURIComponent(itemKey), 'DELETE');
                 }));
                 row.appendChild(controls);
 
@@ -985,7 +984,7 @@
                 button.disabled = true;
                 var flavor = getSelectedFlavor(button.dataset.product);
                 var productName = button.dataset.name + (button.dataset.product === 'soya-pop' ? ' - ' + flavor : '');
-                await updateCart('/items', 'POST', { productId: button.dataset.product, name: productName });
+                await updateCart('/items', 'POST', { productId: button.dataset.product, name: productName, flavor: button.dataset.product === 'soya-pop' ? flavor : undefined });
                 setPanelOpen(true);
                 button.disabled = false;
             });
@@ -1005,9 +1004,138 @@
         });
 
         checkoutBtn.addEventListener('click', async function() {
-            if (!cartTotalPrice.textContent || cartTotalPrice.textContent === '₱0.00') return;
-            cartMessage.textContent = 'Checkout is ready for your order. Connect a payment provider to complete the purchase.';
-            setPanelOpen(true);
+            if (!lastItems.length) return;
+            openBilling();
+        });
+
+        var billingModal = document.getElementById('billingModal');
+        var billingForm = document.getElementById('billingForm');
+        var billingReceipt = document.getElementById('billingReceipt');
+        var billingError = document.getElementById('billingError');
+
+        function cartTotalValue() {
+            return lastItems.reduce(function(sum, item) {
+                return sum + getProductPrice(item.productId) * item.quantity;
+            }, 0);
+        }
+
+        function openBilling() {
+            var lines = document.getElementById('billingLines');
+            lines.replaceChildren();
+            lastItems.forEach(function(item) {
+                var row = document.createElement('div');
+                row.className = 'billing-line';
+                var label = document.createElement('span');
+                label.textContent = item.name + ' × ' + item.quantity + ' @ ' + formatPrice(getProductPrice(item.productId));
+                var amount = document.createElement('strong');
+                amount.textContent = formatPrice(getProductPrice(item.productId) * item.quantity);
+                row.appendChild(label);
+                row.appendChild(amount);
+                lines.appendChild(row);
+            });
+            document.getElementById('billingTotal').textContent = formatPrice(cartTotalValue());
+            billingError.textContent = '';
+            billingForm.hidden = false;
+            billingReceipt.hidden = true;
+            setPanelOpen(false);
+            billingModal.hidden = false;
+            document.getElementById('billName').focus();
+        }
+
+        function closeBilling() {
+            billingModal.hidden = true;
+        }
+
+        document.getElementById('billingClose').addEventListener('click', closeBilling);
+        billingModal.addEventListener('click', function(e) {
+            if (e.target === billingModal) closeBilling();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !billingModal.hidden) closeBilling();
+        });
+
+        billingForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var name = document.getElementById('billName').value.trim();
+            var phone = document.getElementById('billPhone').value.trim();
+            var email = document.getElementById('billEmail').value.trim();
+            var place = document.getElementById('billPlace').value.trim();
+            if (!name || !place || !/^[0-9+\-\s()]{7,}$/.test(phone)) {
+                billingError.textContent = 'Please enter your name, a valid contact number, and a pick-up/delivery place.';
+                return;
+            }
+            if (!/^\S+@\S+\.\S+$/.test(email)) {
+                billingError.textContent = 'Please enter a valid email address to receive your receipt.';
+                return;
+            }
+            var now = new Date();
+            var order = {
+                orderNumber: 'KNX-' + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + '-' + Math.floor(1000 + Math.random() * 9000),
+                date: now.toLocaleString(),
+                customer: { name: name, phone: phone, email: email, place: place },
+                payment: document.getElementById('billPayment').value,
+                notes: document.getElementById('billNotes').value.trim(),
+                items: lastItems.map(function(item) {
+                    var price = getProductPrice(item.productId);
+                    return { name: item.name, quantity: item.quantity, price: price, total: price * item.quantity };
+                }),
+                total: cartTotalValue()
+            };
+            try {
+                var orders = JSON.parse(window.localStorage.getItem('kinetix-orders') || '[]');
+                orders.push(order);
+                window.localStorage.setItem('kinetix-orders', JSON.stringify(orders));
+            } catch (err) { /* receipt still shown */ }
+
+            billingReceipt.replaceChildren();
+            function add(tag, text, cls) {
+                var el = document.createElement(tag);
+                el.textContent = text;
+                if (cls) el.className = cls;
+                billingReceipt.appendChild(el);
+                return el;
+            }
+            add('span', 'Order placed', 'mono-label');
+            add('h3', 'Thank you, ' + order.customer.name + '!');
+            add('p', 'Order no. ' + order.orderNumber + ' · ' + order.date, 'receipt-meta');
+            order.items.forEach(function(item) {
+                var row = document.createElement('div');
+                row.className = 'billing-line';
+                var l = document.createElement('span');
+                l.textContent = item.name + ' × ' + item.quantity + ' @ ' + formatPrice(item.price);
+                var a = document.createElement('strong');
+                a.textContent = formatPrice(item.total);
+                row.appendChild(l);
+                row.appendChild(a);
+                billingReceipt.appendChild(row);
+            });
+            var total = document.createElement('div');
+            total.className = 'billing-total';
+            total.innerHTML = '<span>Total</span><strong></strong>';
+            total.lastChild.textContent = formatPrice(order.total);
+            billingReceipt.appendChild(total);
+            add('p', 'Payment: ' + order.payment + ' · ' + order.customer.place, 'receipt-meta');
+            add('p', 'The KINETIX team will contact you at ' + order.customer.phone + ' to confirm your order.', 'receipt-meta');
+            add('p', 'Thank you for choosing our products! We hope you enjoy every sip and bite.', 'receipt-thanks');
+            var lines = ['KINETIX Organization - Order Receipt', 'Order no.: ' + order.orderNumber, 'Date: ' + order.date, 'Name: ' + order.customer.name, 'Contact: ' + order.customer.phone, 'Email: ' + order.customer.email, 'Place: ' + order.customer.place, 'Payment: ' + order.payment, order.notes ? 'Notes: ' + order.notes : '', '', 'ORDER DETAILS'];
+            order.items.forEach(function(item) {
+                lines.push(item.name + ' - ' + item.quantity + ' x ' + formatPrice(item.price) + ' = ' + formatPrice(item.total));
+            });
+            lines.push('', 'TOTAL: ' + formatPrice(order.total), '', 'Thank you for choosing our products! We hope you enjoy every sip and bite.');
+            var mailLink = document.createElement('a');
+            mailLink.className = 'checkout-btn receipt-mail';
+            mailLink.textContent = 'Send receipt to ' + order.customer.email;
+            mailLink.href = 'mailto:' + encodeURIComponent(order.customer.email) + '?cc=ikaymari4@gmail.com&subject=' + encodeURIComponent('KINETIX Receipt ' + order.orderNumber) + '&body=' + encodeURIComponent(lines.join('\n'));
+            billingReceipt.appendChild(mailLink);
+            var done = add('button', 'Done', 'checkout-btn');
+            done.type = 'button';
+            done.addEventListener('click', closeBilling);
+
+            billingForm.hidden = true;
+            billingReceipt.hidden = false;
+            billingForm.reset();
+            await updateCart('', 'DELETE');
+            cartMessage.textContent = '';
         });
 
         document.addEventListener('click', function(e) {
@@ -1035,6 +1163,198 @@
                 cartMessage.textContent = 'Cart server unavailable. Start the backend from the VS Code task or run dotnet run from backend.';
             }
         });
+    })();
+
+    (function() {
+        var form = document.getElementById('regForm');
+        if (!form) return;
+        var key = 'kinetix-registrations';
+        var formCard = document.getElementById('regFormCard');
+        var passCard = document.getElementById('regPassCard');
+        var errBox = document.getElementById('regError');
+
+        function load() {
+            try { return JSON.parse(window.localStorage.getItem(key) || '[]'); } catch (e) { return []; }
+        }
+        function save(list) {
+            try { window.localStorage.setItem(key, JSON.stringify(list)); } catch (e) { /* pass is still shown */ }
+        }
+        function makeCode(list) {
+            var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            var code;
+            do {
+                code = 'KNX-REG-';
+                for (var i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+            } while (list.some(function(r) { return r.code === code; }));
+            return code;
+        }
+        function row(label, value) {
+            var p = document.createElement('p');
+            var b = document.createElement('strong');
+            b.textContent = label + ': ';
+            p.appendChild(b);
+            p.appendChild(document.createTextNode(value));
+            return p;
+        }
+
+        function drawPass(reg) {
+            var lines = [['Registration code', reg.code], ['Name', reg.name], ['Event', reg.event], ['Category', reg.category], ['Registered', reg.date]];
+            var c = document.createElement('canvas');
+            c.width = 800;
+            c.height = 160 + lines.length * 56 + 40;
+            var g = c.getContext('2d');
+            g.fillStyle = '#ffffff';
+            g.fillRect(0, 0, c.width, c.height);
+            g.fillStyle = '#0b1f3a';
+            g.fillRect(0, 0, c.width, 110);
+            g.fillStyle = '#ffffff';
+            g.font = 'bold 44px Arial, sans-serif';
+            g.fillText('KINETIX DIGITAL PASS', 40, 70);
+            g.fillStyle = '#111111';
+            lines.forEach(function(l, i) {
+                var y = 180 + i * 56;
+                g.font = 'bold 26px Arial, sans-serif';
+                g.fillText(l[0] + ':', 40, y);
+                g.font = '26px Arial, sans-serif';
+                g.fillText(l[1], 290, y);
+            });
+            return c.toDataURL('image/png');
+        }
+
+        function showPass(reg) {
+            document.getElementById('regDownload').href = drawPass(reg);
+            var info = document.getElementById('regInfo');
+            info.replaceChildren(
+                row('Registration code', reg.code),
+                row('Name', reg.name),
+                row('Email', reg.email),
+                row('Contact number', reg.phone),
+                row('School / Organization', reg.school || '-'),
+                row('Event', reg.event),
+                row('Category', reg.category),
+                row('Registered', reg.date)
+            );
+            var body = ['New KINETIX Registration', '', 'Registration code: ' + reg.code, 'Name: ' + reg.name, 'Email: ' + reg.email, 'Contact number: ' + reg.phone, 'School / Organization: ' + (reg.school || '-'), 'Event: ' + reg.event, 'Category: ' + reg.category, 'Registered: ' + reg.date, '', 'Thank you for registering!'].join('\n');
+            document.getElementById('regMail').href = 'mailto:ikaymari4@gmail.com?cc=' + encodeURIComponent(reg.email) + '&subject=' + encodeURIComponent('KINETIX Registration ' + reg.code + ' - ' + reg.name) + '&body=' + encodeURIComponent(body);
+            formCard.hidden = true;
+            passCard.hidden = false;
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var name = document.getElementById('regName').value.trim();
+            var email = document.getElementById('regEmail').value.trim();
+            var phone = document.getElementById('regPhone').value.trim();
+            if (!name || !/^\S+@\S+\.\S+$/.test(email) || !/^[0-9+\-\s()]{7,}$/.test(phone)) {
+                errBox.textContent = 'Please enter your name, a valid email, and a valid contact number.';
+                return;
+            }
+            errBox.textContent = '';
+            var list = load();
+            var reg = {
+                code: makeCode(list),
+                name: name,
+                email: email,
+                phone: phone,
+                school: document.getElementById('regSchool').value.trim(),
+                event: document.getElementById('regEvent').value,
+                category: document.getElementById('regCategory').value,
+                date: new Date().toLocaleString(),
+                checkedIn: null
+            };
+            list.push(reg);
+            save(list);
+            showPass(reg);
+            form.reset();
+        });
+
+        document.getElementById('regNew').addEventListener('click', function() {
+            passCard.hidden = true;
+            formCard.hidden = false;
+        });
+    })();
+
+    (function() {
+        var grid = document.getElementById('galGrid');
+        if (!grid) return;
+        var items = Array.prototype.slice.call(grid.children);
+        items.sort(function(a, b) { return b.dataset.sort.localeCompare(a.dataset.sort); });
+        items.forEach(function(i) { grid.appendChild(i); });
+        var current = 0;
+        var title = document.getElementById('galTitle');
+        var box = document.getElementById('galLightbox');
+
+        function layout() {
+            var n = items.length;
+            items.forEach(function(it, idx) {
+                var d = idx - current;
+                if (d > n / 2) d -= n;
+                if (d < -n / 2) d += n;
+                it.dataset.pos = Math.abs(d) > 2 ? 'far' : String(d);
+                it.classList.toggle('is-current', d === 0);
+            });
+            var cap = items[current].querySelector('figcaption');
+            title.textContent = cap.querySelector('strong').textContent;
+        }
+        function go(step) { current = (current + step + items.length) % items.length; layout(); }
+        function openPhoto(item) {
+            var img = item.querySelector('img');
+            document.getElementById('galLightImg').src = img.src;
+            document.getElementById('galLightImg').alt = img.alt;
+            document.getElementById('galLightCap').textContent = item.querySelector('figcaption').textContent;
+            box.hidden = false;
+        }
+        items.forEach(function(it, idx) {
+            function act() { if (idx === current) openPhoto(it); else { current = idx; layout(); } }
+            it.addEventListener('click', act);
+            it.addEventListener('keydown', function(e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } });
+        });
+        document.getElementById('galPrev').addEventListener('click', function() { go(-1); });
+        document.getElementById('galNext').addEventListener('click', function() { go(1); });
+        box.addEventListener('click', function(e) { if (e.target === box || e.target.id === 'galClose') box.hidden = true; });
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') box.hidden = true; });
+        layout();
+
+        // Add videos here: { src: 'videos/file.mp4', title: 'Video title' }
+        var GALLERY_VIDEOS = [];
+        var player = document.getElementById('galPlayer');
+        var list = document.getElementById('galPlaylist');
+        var empty = document.getElementById('galVideoEmpty');
+        function playVideo(idx) {
+            player.src = GALLERY_VIDEOS[idx].src;
+            player.muted = true;
+            player.play().catch(function() {});
+            Array.prototype.forEach.call(list.children, function(b, i) { b.classList.toggle('is-active', i === idx); });
+        }
+        if (GALLERY_VIDEOS.length) {
+            empty.hidden = true;
+            player.hidden = false;
+            GALLERY_VIDEOS.forEach(function(v, idx) {
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'gal-chip';
+                b.textContent = v.title;
+                b.addEventListener('click', function() { playVideo(idx); });
+                list.appendChild(b);
+            });
+            player.addEventListener('ended', function() {
+                var next = (Array.prototype.findIndex.call(list.children, function(b) { return b.classList.contains('is-active'); }) + 1) % GALLERY_VIDEOS.length;
+                playVideo(next);
+            });
+            playVideo(0);
+        }
+    })();
+
+    (function() {
+        var btn = document.getElementById('faqBtn');
+        var modal = document.getElementById('faqModal');
+        if (!btn || !modal) return;
+        function close() { modal.hidden = true; }
+        btn.addEventListener('click', function() { modal.hidden = false; });
+        document.getElementById('faqClose').addEventListener('click', close);
+        modal.addEventListener('click', function(e) { if (e.target === modal) close(); });
+        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') close(); });
+        window.addEventListener('pageviewchange', close);
     })();
 
     (function() {

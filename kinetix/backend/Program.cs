@@ -13,8 +13,8 @@ var pageFiles = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
 {
     ["index.html"] = "text/html; charset=utf-8",
     ["timer.html"] = "text/html; charset=utf-8",
-    ["templatemo-631-kinetic-style.css"] = "text/css; charset=utf-8",
-    ["templatemo-631-kinetic-script.js"] = "text/javascript; charset=utf-8"
+    ["kinetix-style.css"] = "text/css; charset=utf-8",
+    ["kinetix-script.js"] = "text/javascript; charset=utf-8"
 };
 var imageTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
 {
@@ -22,6 +22,9 @@ var imageTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase
     ["kinetix-logo.svg"] = "image/svg+xml",
     ["kinetic-10.jpg"] = "image/jpeg",
     ["kinetic-11.jpg"] = "image/jpeg",
+    ["logo.jpg"] = "image/jpeg",
+    ["po.jpg"] = "image/jpeg",
+    ["tu.jpg"] = "image/jpeg",
     ["project-01.jpg"] = "image/jpeg",
     ["project-02.jpg"] = "image/jpeg",
     ["project-03.jpg"] = "image/jpeg",
