@@ -1,6 +1,8 @@
-# Kinetix Cart API
+# Kinetix Cart
 
-Start the backend from the workspace root with the provided VS Code task:
+The deployed GitHub Pages site stores each visitor's cart in that browser's local storage. Cart contents are not shared between browsers or devices, and the static site does not process payments or orders.
+
+For a local API-backed cart, start the backend from the workspace root with the provided VS Code task:
 
 - Run Task: `Start Kinetix Cart Backend`
 

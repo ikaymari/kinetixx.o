@@ -437,6 +437,9 @@
         }
         buildSliceBg();
         window.addEventListener('resize', buildSliceBg);
+        document.addEventListener('pageviewchange', function(event) {
+            if (event.detail.view === 'reveal') buildSliceBg();
+        });
 
         var stage = document.getElementById('lentiStage');
         var engaged = false,
@@ -553,6 +556,7 @@
         }
 
         function scrollProgress() {
+            if (document.body.dataset.currentView === 'initiate') return 0;
             var r = foot.getBoundingClientRect();
             var vh = window.innerHeight;
             var p = clamp((vh - r.top) / vh, 0, 1);
@@ -633,6 +637,74 @@
     })();
 
     (function() {
+        var main = document.getElementById('mainContent');
+        var navLinks = Array.prototype.slice.call(document.querySelectorAll('#navLinks a[href^="#"]'));
+        if (!main || !navLinks.length) return;
+
+        var views = Array.prototype.slice.call(main.querySelectorAll(':scope > [data-page-view]'));
+        var categories = Array.prototype.slice.call(main.querySelectorAll('.category-column'));
+        var sectionHead = main.querySelector('#projects .section-head');
+
+        function showView(hash, updateHistory) {
+            var id = (hash || '#hero').slice(1);
+            if (id === 'projects') id = 'products';
+            var target = document.getElementById(id);
+            if (!target || !main.contains(target)) {
+                id = 'hero';
+                target = document.getElementById(id);
+            }
+
+            var category = target.closest('.category-column');
+            var view = category ? document.getElementById('projects') : target.closest('[data-page-view]');
+            if (!view || !views.includes(view)) return;
+
+            views.forEach(function(panel) {
+                panel.hidden = panel !== view;
+                if (panel === view) panel.scrollTop = 0;
+            });
+            categories.forEach(function(panel) {
+                panel.hidden = panel !== category;
+            });
+            if (sectionHead) sectionHead.hidden = !!category;
+
+            document.body.classList.add('one-page');
+            document.body.dataset.currentView = category ? category.id : view.id;
+            navLinks.forEach(function(link) {
+                if (link.getAttribute('href') === '#' + id) {
+                    link.setAttribute('aria-current', 'page');
+                } else {
+                    link.removeAttribute('aria-current');
+                }
+            });
+
+            if (updateHistory && window.location.hash !== '#' + id) {
+                window.history.pushState(null, '', '#' + id);
+            }
+            document.dispatchEvent(new CustomEvent('pageviewchange', {
+                detail: { view: document.body.dataset.currentView }
+            }));
+        }
+
+        navLinks.forEach(function(link) {
+            link.addEventListener('click', function(event) {
+                var href = link.getAttribute('href');
+                if (!document.getElementById(href.slice(1))) return;
+                event.preventDefault();
+                showView(href, true);
+            });
+        });
+
+        window.addEventListener('hashchange', function() {
+            showView(window.location.hash, false);
+        });
+        window.addEventListener('popstate', function() {
+            showView(window.location.hash, false);
+        });
+
+        showView(window.location.hash || '#hero', false);
+    })();
+
+    (function() {
         var toggle = document.getElementById('faqToggle');
         var panel = document.getElementById('faqPanel');
         var close = document.getElementById('faqClose');
@@ -688,6 +760,84 @@
         if (!buttons.length || !productCount || !cartToggle || !cartPanel) return;
 
         var cartEndpoint = window.location.protocol === 'file:' ? 'http://127.0.0.1:5087/api/cart' : '/api/cart';
+        var useBrowserCart = window.location.hostname === 'github.io' || window.location.hostname.endsWith('.github.io');
+        var browserCartKey = 'kinetix-cart-v1';
+
+        function readBrowserCart() {
+            var savedCart = window.localStorage.getItem(browserCartKey);
+            if (!savedCart) return [];
+
+            var items = JSON.parse(savedCart);
+            if (!Array.isArray(items) || items.some(function(item) {
+                return !item || typeof item.productId !== 'string' ||
+                    typeof item.name !== 'string' || !Number.isInteger(item.quantity) ||
+                    item.quantity < 1 || !buttons.some(function(button) {
+                        return button.dataset.product === item.productId;
+                    });
+            })) {
+                throw new Error('Saved cart data is invalid.');
+            }
+            return items;
+        }
+
+        function browserCartSnapshot(items) {
+            return {
+                items: items,
+                totalQuantity: items.reduce(function(total, item) {
+                    return total + item.quantity;
+                }, 0)
+            };
+        }
+
+        function requestBrowserCart(path, method, data) {
+            var items = readBrowserCart();
+            if (method === 'GET') return browserCartSnapshot(items);
+
+            if (method === 'DELETE' && !path) {
+                items = [];
+            } else if (method === 'POST' && path === '/items') {
+                var button = buttons.find(function(entry) {
+                    return entry.dataset.product === (data && data.productId);
+                });
+                if (!button) throw new Error('Choose a valid product.');
+                var existingItem = items.find(function(item) {
+                    return item.productId === button.dataset.product;
+                });
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                    if (data && typeof data.name === 'string') existingItem.name = data.name;
+                } else {
+                    var name = data && typeof data.name === 'string' ? data.name : button.dataset.name;
+                    items.push({ productId: button.dataset.product, name: name, quantity: 1 });
+                }
+            } else {
+                var decrementMatch = path.match(/^\/items\/([^/]+)\/decrement$/);
+                var itemMatch = path.match(/^\/items\/([^/]+)$/);
+                if (method === 'POST' && decrementMatch) {
+                    var decrementId = decodeURIComponent(decrementMatch[1]);
+                    var decrementIndex = items.findIndex(function(item) {
+                        return item.productId.toLowerCase() === decrementId.toLowerCase();
+                    });
+                    if (decrementIndex >= 0) {
+                        if (items[decrementIndex].quantity > 1) {
+                            items[decrementIndex].quantity -= 1;
+                        } else {
+                            items.splice(decrementIndex, 1);
+                        }
+                    }
+                } else if (method === 'DELETE' && itemMatch) {
+                    var removeId = decodeURIComponent(itemMatch[1]).toLowerCase();
+                    items = items.filter(function(item) {
+                        return item.productId.toLowerCase() !== removeId;
+                    });
+                } else {
+                    throw new Error('Unsupported cart operation.');
+                }
+            }
+
+            window.localStorage.setItem(browserCartKey, JSON.stringify(items));
+            return browserCartSnapshot(items);
+        }
 
         function formatPrice(value) {
             return '₱' + Number(value).toFixed(2);
@@ -704,6 +854,7 @@
         }
 
         async function requestCart(path, method, data) {
+            if (useBrowserCart) return requestBrowserCart(path, method, data);
             var options = { method: method };
             if (data) {
                 options.headers = { 'Content-Type': 'application/json' };
@@ -726,7 +877,10 @@
             button.type = 'button';
             button.textContent = label;
             button.setAttribute('aria-label', accessibleLabel);
-            button.addEventListener('click', action);
+            button.addEventListener('click', function(event) {
+                event.stopPropagation();
+                action();
+            });
             return button;
         }
 
@@ -811,10 +965,17 @@
             cartMessage.textContent = '';
             try {
                 renderCart(await requestCart(path, method, data));
+                if (useBrowserCart) {
+                    cartMessage.textContent = 'Cart saved in this browser only; it does not sync across devices.';
+                }
             } catch (error) {
-                cartEmpty.hidden = true;
-                cartItems.replaceChildren();
-                cartMessage.textContent = 'Cart server unavailable. Start the backend to sync changes.';
+                if (useBrowserCart) {
+                    cartMessage.textContent = 'Unable to save the cart in this browser. Check browser storage settings.';
+                } else {
+                    cartEmpty.hidden = true;
+                    cartItems.replaceChildren();
+                    cartMessage.textContent = 'Cart server unavailable. Start the backend to sync changes.';
+                }
             }
         }
 
@@ -862,11 +1023,43 @@
 
         requestCart('', 'GET').then(function(snapshot) {
             renderCart(snapshot);
-            cartMessage.textContent = '';
+            cartMessage.textContent = useBrowserCart
+                ? 'Cart saved in this browser only; it does not sync across devices.'
+                : '';
         }).catch(function() {
-            cartEmpty.hidden = true;
-            cartItems.replaceChildren();
-            cartMessage.textContent = 'Cart server unavailable. Start the backend from the VS Code task or run dotnet run from backend.';
+            if (useBrowserCart) {
+                cartMessage.textContent = 'Unable to load the cart from this browser. Check browser storage settings.';
+            } else {
+                cartEmpty.hidden = true;
+                cartItems.replaceChildren();
+                cartMessage.textContent = 'Cart server unavailable. Start the backend from the VS Code task or run dotnet run from backend.';
+            }
+        });
+    })();
+
+    (function() {
+        var toggle = document.getElementById('themeToggle');
+        if (!toggle) return;
+        var root = document.documentElement;
+
+        function apply(theme) {
+            var isLight = theme === 'light';
+            if (isLight) root.setAttribute('data-theme', 'light');
+            else root.removeAttribute('data-theme');
+            var next = isLight ? 'Switch to dark mode' : 'Switch to light mode';
+            toggle.setAttribute('aria-checked', isLight ? 'true' : 'false');
+            toggle.setAttribute('aria-label', next);
+            toggle.title = next;
+        }
+
+        apply(root.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+
+        toggle.addEventListener('click', function() {
+            var theme = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            apply(theme);
+            try {
+                localStorage.setItem('kinetix-theme', theme);
+            } catch (e) {}
         });
     })();
 
