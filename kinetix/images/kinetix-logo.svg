@@ -22,7 +22,7 @@
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
-  <circle cx="128" cy="128" r="119" fill="#03070d" stroke="url(#spectrum)" stroke-width="4"/>
+  <circle cx="128" cy="128" r="119" fill="none" stroke="url(#spectrum)" stroke-width="4"/>
   <circle cx="128" cy="128" r="111" fill="none" stroke="#16334b" stroke-width="1"/>
   <g fill="none" stroke="url(#spectrum)" stroke-linecap="round" filter="url(#glow)">
     <path d="M27 133c12-48 40-77 80-91" stroke-width="4"/>

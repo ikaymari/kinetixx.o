@@ -64,6 +64,11 @@
             W = r.width;
             H = r.height;
             baseY = H / 2;
+            var word = hero.querySelector('.hero-title > span:first-child');
+            if (word) {
+                var wr = word.getBoundingClientRect();
+                if (wr.height) baseY = wr.top + wr.height / 2 - svg.getBoundingClientRect().top;
+            }
             svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
             aL.setAttribute('cx', 0);
             aL.setAttribute('cy', baseY);
@@ -124,6 +129,15 @@
         window.addEventListener('resize', function() {
             size();
             relaxHomes();
+            posY = baseY;
+        });
+        window.addEventListener('load', function() {
+            size();
+            posY = baseY;
+        });
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(function() {
+            size();
+            posY = baseY;
         });
 
         // spring state: posX/posY = apex target the curve reaches
