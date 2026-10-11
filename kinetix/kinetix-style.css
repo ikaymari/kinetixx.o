@@ -4910,3 +4910,27 @@ html[data-theme="light"] .hero-title > span:first-child b {
         margin-left: .25em;
     }
 }
+
+.hero-title > span:first-child,
+.hero-title > span:first-child b {
+    background: none !important;
+    color: #0b2a6f !important;
+    -webkit-text-fill-color: #0b2a6f !important;
+}
+
+.hero-org {
+    background: none !important;
+    color: #ffd23f !important;
+    -webkit-text-fill-color: #ffd23f !important;
+}
+
+html[data-theme="light"] .hero-title > span:first-child,
+html[data-theme="light"] .hero-title > span:first-child b {
+    color: #ffc531 !important;
+    -webkit-text-fill-color: #ffc531 !important;
+}
+
+html[data-theme="light"] .hero-org {
+    color: #0b2a6f !important;
+    -webkit-text-fill-color: #0b2a6f !important;
+}
