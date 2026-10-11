@@ -4784,6 +4784,9 @@ html[data-theme="light"] .hero-title b {
 }
 
 .hero-title b {
+    font-family: inherit;
+    font-weight: inherit;
+    -webkit-text-stroke: inherit;
     color: #ffe27a;
     -webkit-text-fill-color: #ffe27a;
 }
@@ -4853,7 +4856,7 @@ html[data-theme="light"] .hero-title b {
 
 @media (min-width: 761px) {
     .hero-title > span:first-child {
-        font-size: min(23vw, 42vh);
+        font-size: min(24vw, 44vh);
         transform: scaleX(1.08);
     }
 
