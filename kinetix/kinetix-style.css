@@ -4764,7 +4764,7 @@ html[data-theme="light"] .hero-title b {
 /* Cute aesthetic hero title */
 .hero-title,
 .hero-title > span:first-child {
-    font-family: 'Fredoka', 'Baloo 2', 'Nunito', sans-serif;
+    font-family: 'Lilita One', 'Fredoka', 'Baloo 2', 'Nunito', sans-serif;
     font-size: min(13vw, 38vh);
 }
 
@@ -4792,9 +4792,9 @@ html[data-theme="light"] .hero-title b {
 }
 
 .hero-org {
-    font-family: 'Fredoka', 'Nunito', sans-serif;
+    font-family: 'Lilita One', 'Fredoka', 'Nunito', sans-serif;
     font-size: clamp(1rem, 2.8vw, 2.1rem);
-    font-weight: 600;
+    font-weight: 400;
     letter-spacing: .6em;
     margin-right: -.6em;
     margin-top: .3em;
@@ -4856,7 +4856,7 @@ html[data-theme="light"] .hero-title b {
 
 @media (min-width: 761px) {
     .hero-title > span:first-child {
-        font-size: min(24vw, 44vh);
+        font-size: min(21vw, 40vh);
         transform: scaleX(1.08);
     }
 
@@ -4877,5 +4877,36 @@ html[data-theme="light"] .hero-title b {
         font-size: clamp(1.2rem, 5vw, 2.8rem);
         letter-spacing: .28em;
         margin-right: -.28em;
+    }
+}
+
+.hero-title > span:first-child,
+.hero-title > span:first-child b {
+    -webkit-text-stroke: clamp(1px, .18vw, 2px) #fff;
+    paint-order: stroke fill;
+}
+
+html[data-theme="light"] .hero-title > span:first-child,
+html[data-theme="light"] .hero-title > span:first-child b {
+    -webkit-text-stroke: clamp(1px, .18vw, 2px) #000;
+}
+
+.hero-org {
+    margin-right: 0 !important;
+    text-align: center;
+}
+
+.hero-org::after {
+    margin-left: calc(.9em - .35em);
+}
+
+@media (max-width: 760px) {
+    .hero-org::before,
+    .hero-org::after {
+        margin: 0 .6em;
+    }
+
+    .hero-org::after {
+        margin-left: .25em;
     }
 }
