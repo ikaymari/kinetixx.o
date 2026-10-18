@@ -1,12 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!--KAI WEBS-->
 <html lang="en">
     <head>
         <meta charset="utf-8">
         <script>
             (function() {
+                document.documentElement.setAttribute('data-theme', 'light');
                 try {
-                    if (localStorage.getItem('kinetix-theme') === 'light') document.documentElement.setAttribute('data-theme', 'light');
+                    if (localStorage.getItem('kinetix-theme') === 'dark') document.documentElement.removeAttribute('data-theme');
                 } catch (e) {}
             })();
         </script>
@@ -16,12 +17,29 @@
               content="KINETIX Organization is a student-led event management organization from City College of Angeles, specializing in planning and coordinating engaging events, sports activities, workshops, seminars, and other meaningful experiences. As Bachelor of Physical Education students with MICE electives, we combine creativity, teamwork, and event management skills to turn ideas into action.">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&family=Lilita+One&family=Space+Grotesk:wght@500;600;700&display=swap"
+        <link href="https://fonts.googleapis.com/css2?family=Anton&family=DM+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&family=Lilita+One&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Space+Grotesk:wght@500;600;700&display=swap"
               rel="stylesheet">
-        <link rel="stylesheet" href="kinetix-style.css?v=66">
+        <link rel="stylesheet" href="kinetix-style.css?v=79">
     </head>
     <body>
         <header class="site-header">
+            <a class="brand" href="#hero" aria-label="Kinetix home">
+                <img class="brand-mark" src="images/logo.jpg" alt="" aria-hidden="true">
+                <span class="brand-name">KINETIX</span>
+            </a>
+            <nav class="topbar" aria-label="Main navigation">
+                <div class="nav-index" id="navLinks">
+                    <a href="#hero">HOME</a>
+                    <a href="#reveal">ABOUT</a>
+                    <a href="#services">SERVICES</a>
+                    <a href="#events">EVENTS</a>
+                    <a href="#products">PRODUCTS</a>
+                    <a href="#gallery">GALLERY</a>
+                    <a href="#register">REGISTER</a>
+                    <a href="#initiate">CONTACT</a>
+                    <a href="#legal">PRIVACY &amp; TERMS</a>
+                </div>
+            </nav>
             <button class="theme-toggle" id="themeToggle" type="button" role="switch" aria-checked="false" aria-label="Switch to light mode" title="Switch to light mode">
                 <svg class="theme-icon theme-icon-sun" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
                 <svg class="theme-icon theme-icon-moon" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
@@ -32,39 +50,47 @@
                 <span></span>
                 <span></span>
             </button>
-            <nav class="topbar" aria-label="Main navigation">
-                <div class="nav-index" id="navLinks">
-                    <a href="#hero">HOME</a>
-                    <a href="#reveal">ABOUT US</a>
-                    <a href="#services">SERVICES</a>
-                    <a href="#events">EVENTS</a>
-                    <a href="#products">PRODUCTS</a>
-                    <a href="#register">REGISTER</a>
-                    <a href="#gallery">GALLERY</a>
-                    <a href="#initiate">CONTACT US</a>
-                    <a href="#legal">PRIVACY POLICY &amp; TERMS</a>
-                </div>
-            </nav>
         </header>
         <main id="mainContent">
             <!-- ====================== 01 HERO ====================== -->
             <section class="hero" id="hero" data-page-view>
-                <div class="hero-logo" aria-hidden="true">
-                    <img src="images/kinetix-logo.png" alt="" width="220" height="220">
+                <div class="hero-visual">
+                    <img src="images/GROUP%20PHOTO%201.jpg" alt="Kinetix Organization members at City College of Angeles">
+                    <div class="hero-photo-caption">
+                        <span>KINETIX / CCA</span>
+                        <b aria-hidden="true">/</b>
+                        <span>TEAM 2026</span>
+                    </div>
                 </div>
-                <h1 class="hero-title" aria-label="Kinetix Organization">
-                    <span>KIN<b>E</b>TIX</span>
-                    <span class="hero-org">ORGANIZATION</span>
-                </h1>
-                <svg class="string-svg"
-                     id="stringSvg"
-                     preserveAspectRatio="none"
-                     aria-hidden="true">
-                    <path class="string-path" id="stringPath"></path>
-                    <circle class="string-anchor" id="anchorL" r="5"></circle>
-                    <circle class="string-anchor" id="anchorR" r="5"></circle>
-                    <circle class="string-grip" id="grip" r="7"></circle>
-                </svg>
+                <div class="hero-content">
+                    <p class="hero-kicker">CITY COLLEGE OF ANGELES <span>Â·</span> BPED</p>
+                    <h1 class="hero-title" aria-label="Kinetix Organization">KIN<b>E</b>TIX</h1>
+                    <p class="hero-org">ORGANIZATION</p>
+                    <p class="hero-description">A student-led event management organization turning ideas into action â€” planning engaging events, sports activities, workshops, and seminars that bring people together.</p>
+                    <div class="hero-actions">
+                        <a class="hero-cta hero-cta-primary" href="#register">REGISTER FOR AN EVENT</a>
+                        <a class="hero-cta hero-cta-secondary" href="#reveal">ABOUT US</a>
+                    </div>
+                </div>
+
+                <div class="hero-ticker" aria-label="Events, sports, workshops, and seminars">
+                    <div class="ticker-track">
+                        <div class="ticker-group">
+                            <span>EVENTS</span><i>/</i>
+                            <span>SPORTS</span><i>/</i>
+                            <span>WORKSHOPS</span><i>/</i>
+                            <span>SEMINARS</span><i>/</i>
+                            <span>COMMUNITY</span><i>/</i>
+                        </div>
+                        <div class="ticker-group" aria-hidden="true">
+                            <span>EVENTS</span><i>/</i>
+                            <span>SPORTS</span><i>/</i>
+                            <span>WORKSHOPS</span><i>/</i>
+                            <span>SEMINARS</span><i>/</i>
+                            <span>COMMUNITY</span><i>/</i>
+                        </div>
+                    </div>
+                </div>
             </section>
             <!-- ====================== 02 ABOUT ====================== -->
             <section class="reveal" id="reveal" data-page-view>
@@ -86,7 +112,7 @@
                 <div class="lenti-stage" id="lentiStage">
                     <div class="lenti" id="lenti" aria-hidden="true"
                          data-front="images/po.jpg"
-                         data-back="images/tu.jpg"></div>
+                         data-back="images/pose.jpg"></div>
                 </div>
 
                 <section class="team-section" aria-labelledby="team-heading">
@@ -184,39 +210,39 @@
                         <p class="services-intro">At KINETIX Organization, we offer a variety of services designed to promote physical fitness, teamwork, creativity, leadership, and meaningful student experiences. Through well-organized events and engaging activities, we aim to create opportunities for learning, collaboration, and active participation.</p>
                         <div class="category-items services-list">
                             <div class="cell" tabindex="0" role="button" aria-label="Seminar">
-                                <div class="cell-media" style="background-image:url('images/project-09.jpg')"></div>
+                                                            <div class="cell-media" style="background-image:url('images/SEMINAR/Kinetix%20Members.jpg')"></div>
                                 <div class="cell-num">1</div>
                                 <div class="cell-name">SEMINAR</div>
                                 <div class="cell-detail">We organize educational seminars that provide valuable knowledge, practical insights, and learning opportunities for students and participants. Our seminars focus on personal development, leadership, sports, physical education, and other relevant topics that inspire growth and learning.</div>
                                 <div class="cell-cat">Learning &amp; Development</div>
                             </div>
                             <div class="cell" tabindex="0" role="button" aria-label="Workshop">
-                                <div class="cell-media" style="background-image:url('images/project-05.jpg')"></div>
+                                                            <div class="cell-media" style="background-image:url('images/WORKSHOP/workshop.jpg')"></div>
                                 <div class="cell-num">2</div>
                                 <div class="cell-name">WORKSHOP</div>
                                 <div class="cell-detail">We conduct interactive and hands-on workshops designed to enhance participants' skills, creativity, and teamwork. Through practical activities and guided learning experiences, we encourage active participation and help students develop skills they can apply in real-life situations.</div>
                                 <div class="cell-cat">Learning &amp; Development</div>
                             </div>
                             <div class="cell" tabindex="0" role="button" aria-label="Officiating">
-                                <div class="cell-media" style="background-image:url('images/project-06.jpg')"></div>
+                                <div class="cell-media" style="background-image:url('images/OFFICIATING/off.jpg')"></div>
                                 <div class="cell-num">3</div>
                                 <div class="cell-name">OFFICIATING</div>
                                 <div class="cell-detail">Held in August 30, 2025 at the Angeles City National Trade School. We provide officiating services for sports events and competitions, ensuring organized gameplay, fair decisions, and proper implementation of game rules. Our team supports smooth event operations while promoting discipline, sportsmanship, and respect among players and participants.</div>
-                                <div class="cell-cat">August 30, 2025 · Angeles City National Trade School</div>
+                                <div class="cell-cat">August 30, 2025 Â· Angeles City National Trade School</div>
                             </div>
                             <div class="cell" tabindex="0" role="button" aria-label="P.E. Days">
-                                <div class="cell-media" style="background-image:url('images/project-03.jpg')"></div>
+                                                            <div class="cell-media" style="background-image:url('images/PE%20DAYS/pe.jpg')"></div>
                                 <div class="cell-num">4</div>
                                 <div class="cell-name">P.E. DAYS</div>
                                 <div class="cell-detail">Held in September 24 &amp; 25, 2026 at the City College of Angeles. We organize exciting and engaging P.E. Days that encourage students to embrace physical activity, teamwork, and healthy competition. Through various sports, recreational games, and interactive activities, we create memorable experiences that promote fitness, camaraderie, and school spirit.</div>
-                                <div class="cell-cat">September 24 &amp; 25, 2026 · City College of Angeles</div>
+                                <div class="cell-cat">September 24 &amp; 25, 2026 Â· City College of Angeles</div>
                             </div>
                             <div class="cell" tabindex="0" role="button" aria-label="College Days">
-                                <div class="cell-media" style="background-image:url('images/project-02.jpg')"></div>
+                                                            <div class="cell-media" style="background-image:url('images/COLLEGE%20DAYS/FB_IMG_1791287598201.jpg')"></div>
                                 <div class="cell-num">5</div>
                                 <div class="cell-name">COLLEGE DAYS</div>
                                 <div class="cell-detail">Held in March 30, 2026 at the City College of Angeles. We help plan and organize College Days that celebrate student life, creativity, talent, and unity. From interactive activities and friendly competitions to engaging programs and special events, we aim to make every celebration meaningful, enjoyable, and memorable for the entire college community.</div>
-                                <div class="cell-cat">March 30, 2026 · City College of Angeles</div>
+                                <div class="cell-cat">March 30, 2026 Â· City College of Angeles</div>
                             </div>
                         </div>
                     </section>
@@ -228,35 +254,35 @@
                         </div>
                         <div class="category-items">
                             <div class="cell" tabindex="0" role="button" aria-label="Workshop (Folk dance and Ballroom)">
-                                <div class="cell-media" style="background-image:url('images/project-05.jpg')"></div>
+                                                            <div class="cell-media" style="background-image:url('images/FOLKDANCE/received_1094662083424346.jpeg')"></div>
                                 <div class="cell-num">1</div>
                                 <div class="cell-name">WORKSHOP</div>
                                 <div class="cell-detail">Held on November 17, 2023, Show the participation in the Ballroom and Folk Dance Workshop, where we learned and practiced different dance movements, steps, and techniques. Through this workshop, we were able to experience the importance of discipline, cooperation, and active participation in learning different forms of dance.</div>
                                 <div class="cell-cat">Folk Dance and Ballroom</div>
                             </div>
                             <div class="cell" tabindex="0" role="button" aria-label="Next Level PE seminar">
-                                <div class="cell-media" style="background-image:url('images/project-03.jpg')"></div>
+                                                            <div class="cell-media" style="background-image:url('images/SEMINAR/Kinetix%20Members.jpg')"></div>
                                 <div class="cell-num">2</div>
                                 <div class="cell-name">SEMINAR</div>
-                                <div class="cell-detail">Held on April 10, 2026, “NEXT-LEVEL PE: Strategy, Leadership, and Success” was successfully organized by the 4th-year Bachelor of Physical Education students of City College of Angeles under KINETIX Organization, in collaboration with Victory Vault, as part of our event subject requirement. The seminar brought together 2nd-year BPE students for a day of learning and inspiration, focusing on strategy, leadership, teamwork, and success in Physical Education. Participants shared positive feedback, highlighting the event as a meaningful and enjoyable experience filled with valuable knowledge, fresh insights, and memorable moments.</div>
+                                <div class="cell-detail">Held on April 10, 2026, â€œNEXT-LEVEL PE: Strategy, Leadership, and Successâ€ was successfully organized by the 4th-year Bachelor of Physical Education students of City College of Angeles under KINETIX Organization, in collaboration with Victory Vault, as part of our event subject requirement. The seminar brought together 2nd-year BPE students for a day of learning and inspiration, focusing on strategy, leadership, teamwork, and success in Physical Education. Participants shared positive feedback, highlighting the event as a meaningful and enjoyable experience filled with valuable knowledge, fresh insights, and memorable moments.</div>
                                 <div class="cell-cat">Next Level PE</div>
                             </div>
                             <div class="cell" tabindex="0" role="button" aria-label="Officiating">
-                                <div class="cell-media" style="background-image:url('images/project-04.jpg')"></div>
+                                <div class="cell-media" style="background-image:url('images/OFFICIATING/received_1262844935321020.jpeg')"></div>
                                 <div class="cell-num">3</div>
                                 <div class="cell-name">OFFICIATING</div>
                                 <div class="cell-detail">Held on August 30, 2025 at the Angeles City National Trade School. PE students gain hands-on experience in sports coaching, where they learn to train, guide, and motivate athletes toward improved performance. They develop skills in training planning, communication, leadership, teamwork, and athlete development, preparing them for future careers as professional coaches and Physical Education practitioners.</div>
                                 <div class="cell-cat">Angeles City National Trade School</div>
                             </div>
                             <div class="cell" tabindex="0" role="button" aria-label="College Days">
-                                <div class="cell-media" style="background-image:url('images/project-08.jpg')"></div>
+                                <div class="cell-media" style="background-image:url('images/COLLEGE%20DAYS/FB_IMG_1791287600342.jpg')"></div>
                                 <div class="cell-num">4</div>
                                 <div class="cell-name">COLLEGE DAYS</div>
                                 <div class="cell-detail">Held on March 26-30, 2026 at the City College of Angeles. CCA Days celebrates the skills, talents, and abilities of City College of Angeles students through culture, sports, creativity, and teamwork. It provides a platform for students to showcase their potential, build connections, and celebrate achievements as one CCA community.</div>
                                 <div class="cell-cat">City College of Angeles</div>
                             </div>
                             <div class="cell" tabindex="0" role="button" aria-label="PE Days">
-                                <div class="cell-media" style="background-image:url('images/project-07.jpg')"></div>
+                                <div class="cell-media" style="background-image:url('images/PE%20DAYS/received_1102563565812285.jpeg')"></div>
                                 <div class="cell-num">5</div>
                                 <div class="cell-name">PE DAYS</div>
                                 <div class="cell-detail">PE Days at City College of Angeles held on September 24/25, 2026, celebrated fitness, teamwork, and healthy living through engaging activities and Mr. and Ms. Fitness. With the support of 4th year BPE students, the event showcased student talents, built confidence, and strengthened connections through Physical Education.</div>
@@ -274,14 +300,14 @@
                             <p class="cart-status" role="status" aria-live="polite"><span id="productCartCount">0</span> items added</p>
                             <article class="product-card" aria-label="Soya Pop product card">
                                 <div class="cell" tabindex="0" role="button" aria-label="Soya Pop">
-                                    <div class="cell-media" style="background-image:url('images/project-01.jpg')"></div>
+                                    <div class="cell-media" style="background-image:url('images/soya.jpg')"></div>
                                     <div class="cell-num">01</div>
                                     <div class="cell-name">SOYA POP</div>
                                     <div class="cell-detail">Soya Pop is a delicious soy milk drink made from whole soybeans and available in three flavors: Original, Banana, and Cereal. Each 240 mL serving contains 7g of protein and essential nutrients like calcium, vitamin D, vitamin B12, and potassium. Smooth, flavorful, and convenient, Soya Pop is a great choice for enjoying soy milk anytime.</div>
-                                    <div class="cell-cat">Original · Banana · Cereal — ₱40</div>
+                                    <div class="cell-cat">Original Â· Banana Â· Cereal â€” â‚±40</div>
                                 </div>
                                 <div class="product-card-actions">
-                                    <span class="product-price">₱40.00</span>
+                                    <span class="product-price">â‚±40.00</span>
                                     <button class="add-to-cart" type="button" data-product="soya-pop" data-name="Soya Pop" data-price="40">Add to cart</button>
                                 </div>
                                 <div class="product-flavor-picker" data-product="soya-pop">
@@ -295,14 +321,14 @@
                             </article>
                             <article class="product-card" aria-label="Nutflix product card">
                                 <div class="cell" tabindex="0" role="button" aria-label="Nutflix">
-                                    <div class="cell-media" style="background-image:url('images/project-02.jpg')"></div>
+                                    <div class="cell-media" style="background-image:                                    url('images/nutflix.jpg')"></div>
                                     <div class="cell-num">02</div>
                                     <div class="cell-name">NUTFLIX</div>
                                     <div class="cell-detail">Nutflix is a delicious mixed-nut snack made with walnuts, almonds, cashews, raisins, pumpkin seeds, cranberries, and blackberries. It offers a satisfying mix of crunchy nuts, seeds, and naturally sweet dried fruits in every bite. Packed in a convenient 200g container, Nutflix is perfect for a quick and enjoyable snack at school, work, while traveling, or anytime you need a tasty treat.</div>
-                                    <div class="cell-cat">200g — ₱106</div>
+                                    <div class="cell-cat">200g â€” â‚±106</div>
                                 </div>
                                 <div class="product-card-actions">
-                                    <span class="product-price">₱106.00</span>
+                                    <span class="product-price">â‚±106.00</span>
                                     <button class="add-to-cart" type="button" data-product="nutflix" data-name="Nutflix" data-price="106">Add to cart</button>
                                 </div>
                             </article>
@@ -338,7 +364,7 @@
                             </section>
                             <section class="contact-item">
                                 <h3>Hours &amp; social</h3>
-                                <p class="contact-meta"><svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>8:00 AM – 5:00 PM</span></p>
+                                <p class="contact-meta"><svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>8:00 AM â€“ 5:00 PM</span></p>
                                 <div class="contact-social">
                                     <a href="https://www.facebook.com/profile.php?id=61587836133745" target="_blank" rel="noopener noreferrer"><svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M14 21v-8h3l.5-4H14V7c0-1.2.4-2 2-2h2V1.4C17.2 1.2 16.2 1 15 1c-3.2 0-5 1.9-5 5.4V9H7v4h3v8"/></svg><span>Facebook</span></a>
                                     <a href="https://www.instagram.com/kinetix_org/" target="_blank" rel="noopener noreferrer"><svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg><span>Instagram</span></a>
@@ -348,7 +374,7 @@
                     </div>
                 </div>
                 <div class="sig-foot">
-                    <span>Kinetix Organization · City College of Angeles</span>
+                    <span>Kinetix Organization Â· City College of Angeles</span>
                     <span>Student-led events, thoughtfully made</span>
                 </div>
             </footer>
@@ -446,7 +472,7 @@
                                 <p>Participants are expected to follow the rules, safety guidelines, instructions, and reasonable directions provided by KINETIX and event organizers. Participants may be required to comply with applicable school policies and venue regulations. KINETIX reserves the right to address disruptive, unsafe, or inappropriate conduct in accordance with applicable policies and procedures.</p>
 
                                 <h3>5. Intellectual Property</h3>
-                                <p>Unless otherwise indicated, materials appearing on this website—including the KINETIX name, logo, graphics, original text, photographs, and other original content—belong to or are used with permission by KINETIX or the respective rights holder. You may not reproduce, modify, distribute, or use protected materials for commercial purposes without appropriate permission.</p>
+                                <p>Unless otherwise indicated, materials appearing on this websiteâ€”including the KINETIX name, logo, graphics, original text, photographs, and other original contentâ€”belong to or are used with permission by KINETIX or the respective rights holder. You may not reproduce, modify, distribute, or use protected materials for commercial purposes without appropriate permission.</p>
 
                                 <h3>6. Third-Party Links</h3>
                                 <p>The website may contain links to external websites, social media pages, registration platforms, or other third-party services. These websites are operated independently from KINETIX. We are not responsible for the content, privacy practices, availability, or security of external websites. Users should review the terms and privacy policies of third-party websites before providing personal information.</p>
@@ -465,7 +491,7 @@
                                 <p><strong>KINETIX Organization</strong><br>
                                 Email: <a href="mailto:kinetixorg.2026@gmail.com">kinetixorg.2026@gmail.com</a><br>
                                 Phone: <a href="tel:+639367427515">0936-742-7515</a><br>
-                                Social Media: <a href="https://www.facebook.com/profile.php?id=61587836133745" target="_blank" rel="noopener noreferrer">Facebook</a> · <a href="https://www.instagram.com/kinetix_org/" target="_blank" rel="noopener noreferrer">Instagram</a><br>
+                                Social Media: <a href="https://www.facebook.com/profile.php?id=61587836133745" target="_blank" rel="noopener noreferrer">Facebook</a> Â· <a href="https://www.instagram.com/kinetix_org/" target="_blank" rel="noopener noreferrer">Instagram</a><br>
                                 Address: Arayat Blvd, Brgy Pampanga, Angeles City</p>
                             </div>
                         </details>
@@ -486,33 +512,30 @@
                         <button type="button" class="gal-arrow gal-prev" id="galPrev" aria-label="Previous photo">&#8249;</button>
                         <div class="gal-grid" id="galGrid">
                         <figure class="gal-item" data-event="Seminar" data-sort="2026-04-10" tabindex="0" role="button" aria-label="Open Next-Level PE Seminar photo">
-                            <img src="images/project-03.jpg" alt="Next-Level PE Seminar" loading="lazy">
+                            <img src="images/SEMINAR/Kinetix%20Members.jpg" alt="Next-Level PE Seminar" loading="lazy">
                             <figcaption><strong>Next-Level PE Seminar</strong><span>April 10, 2026</span></figcaption>
                         </figure>
                         <figure class="gal-item" data-event="College Days" data-sort="2026-03-26" tabindex="0" role="button" aria-label="Open College Days photo">
-                            <img src="images/project-08.jpg" alt="College Days" loading="lazy">
+                            <img src="images/COLLEGE%20DAYS/FB_IMG_1791287600342.jpg" alt="College Days" loading="lazy">
                             <figcaption><strong>College Days</strong><span>March 26-30, 2026</span></figcaption>
                         </figure>
                         <figure class="gal-item" data-event="PE Days" data-sort="2026-09-24" tabindex="0" role="button" aria-label="Open PE Days photo">
-                            <img src="images/project-07.jpg" alt="PE Days" loading="lazy">
+                            <img src="images/PE%20DAYS/pe.jpg" alt="PE Days" loading="lazy">
                             <figcaption><strong>PE Days</strong><span>September 24/25, 2026</span></figcaption>
                         </figure>
                         <figure class="gal-item" data-event="Officiating" data-sort="2025-08-30" tabindex="0" role="button" aria-label="Open Officiating photo">
-                            <img src="images/project-04.jpg" alt="Officiating" loading="lazy">
+                            <img src="images/OFFICIATING/off.jpg" alt="Officiating" loading="lazy">
                             <figcaption><strong>Officiating</strong><span>August 30, 2025</span></figcaption>
                         </figure>
                         <figure class="gal-item" data-event="Workshop" data-sort="2023-11-17" tabindex="0" role="button" aria-label="Open Workshop photo">
-                            <img src="images/project-05.jpg" alt="Folk Dance and Ballroom Workshop" loading="lazy">
+                            <img src="images/FOLKDANCE/received_1094662083424346.jpeg" alt="Folk Dance and Ballroom Workshop" loading="lazy">
                             <figcaption><strong>Folk Dance &amp; Ballroom Workshop</strong><span>November 17, 2023</span></figcaption>
                         </figure>
                         <figure class="gal-item" data-event="Group Photo" data-sort="" tabindex="0" role="button" aria-label="Open Group Photo 1">
                             <img src="images/GROUP PHOTO 1.jpg" alt="KINETIX organization group photo 1" loading="lazy">
                             <figcaption><strong>Group Photo 1</strong></figcaption>
                         </figure>
-                        <figure class="gal-item" data-event="Group Photo" data-sort="" tabindex="0" role="button" aria-label="Open Group Photo">
-                            <img src="images/GROUP PHOTO.jpg" alt="KINETIX organization group photo" loading="lazy">
-                            <figcaption><strong>Group Photo</strong></figcaption>
-                        </figure>
+                        
                         </div>
                         <button type="button" class="gal-arrow gal-next" id="galNext" aria-label="Next photo">&#8250;</button>
                     </div>
@@ -612,7 +635,7 @@
                     <span><span id="cartTotalQuantity">0</span> total items</span>
                     <button class="cart-clear" id="cartClear" type="button" disabled>Clear cart</button>
                 </div>
-                <div class="cart-summary"><span>Total</span><strong id="cartTotalPrice">₱0.00</strong></div>
+                <div class="cart-summary"><span>Total</span><strong id="cartTotalPrice">â‚±0.00</strong></div>
                 <button class="checkout-btn" id="checkoutBtn" type="button" disabled>Proceed to billing</button>
             </div>
             <button class="cart-toggle" id="cartToggle" type="button" aria-expanded="false" aria-label="Open shopping cart">
@@ -627,7 +650,7 @@
                     <span class="mono-label">Billing</span>
                     <h3 id="billingTitle">Order summary</h3>
                     <div class="billing-lines" id="billingLines"></div>
-                    <div class="billing-total"><span>Total to pay</span><strong id="billingTotal">₱0.00</strong></div>
+                    <div class="billing-total"><span>Total to pay</span><strong id="billingTotal">â‚±0.00</strong></div>
                     <div class="billing-grid">
                         <label>Full name<input type="text" id="billName" autocomplete="name" required></label>
                         <label>Contact number<input type="tel" id="billPhone" autocomplete="tel" required></label>
@@ -675,6 +698,6 @@
                 </details>
             </div>
         </div>
-        <script src="kinetix-script.js?v=25"></script>
+        <script src="kinetix-script.js?v=32"></script>
     </body>
 </html>
