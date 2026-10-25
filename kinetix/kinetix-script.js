@@ -5,6 +5,58 @@
 
 (function() {
     "use strict";
+    function styleKinetixTitle(title) {
+        var text = title.textContent.trim();
+        title.setAttribute('aria-label', text);
+        title.classList.add('kinetix-display-title');
+        title.style.setProperty('font-family', "'Anton', Impact, 'Arial Black', sans-serif", 'important');
+        title.style.setProperty('font-weight', '900', 'important');
+        title.style.setProperty('text-transform', 'uppercase', 'important');
+        title.textContent = '';
+
+        Array.from(text).forEach(function(character) {
+            if (/\s/.test(character)) {
+                var wordSpace = document.createElement('span');
+                wordSpace.className = 'kinetix-title-word-space';
+                wordSpace.setAttribute('aria-hidden', 'true');
+                wordSpace.textContent = '\u00a0';
+                title.appendChild(wordSpace);
+                return;
+            }
+
+            var letter = document.createElement('span');
+            letter.className = 'kinetix-title-letter';
+            letter.textContent = character;
+            title.appendChild(letter);
+        });
+    }
+
+    document.querySelectorAll(
+        '.reveal-cap > h2, .team-heading h2, .section-head h2, .legal-intro h2, ' +
+        '.category-heading h3, .announcements-heading h2, .purpose-item h3, .gal-title'
+    ).forEach(styleKinetixTitle);
+
+    var visitorSessionKey = 'kinetix-visitor-counted';
+    var alreadyCounted = false;
+    try {
+        alreadyCounted = window.sessionStorage.getItem(visitorSessionKey) === 'true';
+    } catch (error) {
+        console.error('Unable to check the Kinetix visitor session:', error);
+    }
+    if (!alreadyCounted) {
+        fetch('/api/visits', { method: 'POST', credentials: 'same-origin', keepalive: true })
+            .then(function(response) {
+                if (!response.ok) throw new Error('The visitor count request failed with HTTP ' + response.status + '.');
+                try {
+                    window.sessionStorage.setItem(visitorSessionKey, 'true');
+                } catch (error) {
+                    console.error('Unable to save the Kinetix visitor session:', error);
+                }
+            })
+            .catch(function(error) {
+                console.error('Unable to record the Kinetix website visit:', error);
+            });
+    }
     var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     /* =====================================================
@@ -17,6 +69,7 @@
         var aL = document.getElementById('anchorL');
         var aR = document.getElementById('anchorR');
         var grip = document.getElementById('grip');
+        if (!hero || !svg || !path || !aL || !aR || !grip) return;
 
         // ---- kinetic box field ----
         var field = document.createElement('div');
@@ -159,55 +212,32 @@
             active = false;
         });
 
-        function draw() {
-            if (W === 0) size();
-            posX = (active ? mouseX : W / 2);
+        // quadratic control point so the curve APEX lands on (posX, posY)
+        var curveY = 0;
 
-            if (reduceMotion) {
-                posY = baseY; // flat, no physics
+        function ropeYAt(x) {
+            // exact quadratic-bezier Y for curve P0(0,baseY) P1(posX,curveY) P2(W,baseY)
+            var A = W - 2 * posX,
+                t;
+            if (Math.abs(A) < 0.0001) {
+                t = x / W;
             } else {
-                var targetY = active ? mouseY : baseY;
-                var k = 0.055,
-                    damp = 0.80; // low damping = visible spring bounce
-                velY += (targetY - posY) * k;
-                velY *= damp;
-                posY += velY;
+                var disc = posX * posX + A * x;
+                if (disc < 0) disc = 0;
+                t = (-posX + Math.sqrt(disc)) / A;
             }
+            if (t < 0) t = 0;
+            else if (t > 1) t = 1;
+            var omt = 1 - t;
+            return omt * omt * baseY + 2 * omt * t * curveY + t * t * baseY;
+        }
 
-            // quadratic control point so the curve APEX lands on (posX, posY)
-            var cy = 2 * posY - baseY;
-            path.setAttribute('d', 'M 0 ' + baseY + ' Q ' + posX + ' ' + cy + ' ' + W + ' ' + baseY);
-
-            grip.setAttribute('cx', posX);
-            grip.setAttribute('cy', posY);
-            grip.setAttribute('opacity', active ? 1 : 0);
-
-            // === rope as a physical body: it touches boxes and flings them ===
+        // 1) integrate each box under rope contact + weak home drift
+        function integrateBoxes() {
             var ROPE_HALF = 14; // effective rope thickness for contact
-            var FRICTION = 0.85;
             var HOME = 0.010; // weak drift back toward origin
-            var k3, b;
-
-            function ropeYAt(x) {
-                // exact quadratic-bezier Y for curve P0(0,baseY) P1(posX,cy) P2(W,baseY)
-                var A = W - 2 * posX,
-                    t;
-                if (Math.abs(A) < 0.0001) {
-                    t = x / W;
-                } else {
-                    var disc = posX * posX + A * x;
-                    if (disc < 0) disc = 0;
-                    t = (-posX + Math.sqrt(disc)) / A;
-                }
-                if (t < 0) t = 0;
-                else if (t > 1) t = 1;
-                var omt = 1 - t;
-                return omt * omt * baseY + 2 * omt * t * cy + t * t * baseY;
-            }
-
-            // 1) integrate each box under rope contact + weak home drift
-            for (k3 = 0; k3 < boxes.length; k3++) {
-                b = boxes[k3];
+            for (var i = 0; i < boxes.length; i++) {
+                var b = boxes[i];
                 var hh = b.h / 2,
                     hw = b.w / 2;
                 var px = b.fx * W + b.ox;
@@ -231,6 +261,7 @@
                     b.prevRopeY = nearest;
                 }
 
+                var FRICTION = 0.85;
                 b.vx += -b.ox * HOME;
                 b.vy += -b.oy * HOME;
                 b.vx *= FRICTION;
@@ -238,41 +269,43 @@
                 b.ox += b.vx;
                 b.oy += b.vy;
             }
+        }
 
-            // 2) separation so boxes shove each other apart, never overlap
-            if (!reduceMotion) {
-                for (var pass = 0; pass < 3; pass++) {
-                    for (var a2 = 0; a2 < boxes.length; a2++) {
-                        for (var c2 = a2 + 1; c2 < boxes.length; c2++) {
-                            var ba = boxes[a2],
-                                bb = boxes[c2];
-                            var ddx = (ba.fx * W + ba.ox) - (bb.fx * W + bb.ox);
-                            var ddy = (ba.fy * H + ba.oy) - (bb.fy * H + bb.oy);
-                            var ox2 = (ba.w / 2 + bb.w / 2 + 6) - Math.abs(ddx);
-                            var oy2 = (ba.h / 2 + bb.h / 2 + 6) - Math.abs(ddy);
-                            if (ox2 > 0 && oy2 > 0) {
-                                if (ox2 < oy2) {
-                                    var sh = (ddx < 0 ? -1 : 1) * ox2 * 0.30;
-                                    ba.ox += sh;
-                                    bb.ox -= sh;
-                                    ba.vx *= 0.5;
-                                    bb.vx *= 0.5;
-                                } else {
-                                    var sv = (ddy < 0 ? -1 : 1) * oy2 * 0.30;
-                                    ba.oy += sv;
-                                    bb.oy -= sv;
-                                    ba.vy *= 0.5;
-                                    bb.vy *= 0.5;
-                                }
+        // 2) separation so boxes shove each other apart, never overlap
+        function separateBoxes() {
+            for (var pass = 0; pass < 3; pass++) {
+                for (var a = 0; a < boxes.length; a++) {
+                    for (var c = a + 1; c < boxes.length; c++) {
+                        var ba = boxes[a],
+                            bb = boxes[c];
+                        var ddx = (ba.fx * W + ba.ox) - (bb.fx * W + bb.ox);
+                        var ddy = (ba.fy * H + ba.oy) - (bb.fy * H + bb.oy);
+                        var ox = (ba.w / 2 + bb.w / 2 + 6) - Math.abs(ddx);
+                        var oy = (ba.h / 2 + bb.h / 2 + 6) - Math.abs(ddy);
+                        if (ox > 0 && oy > 0) {
+                            if (ox < oy) {
+                                var sh = (ddx < 0 ? -1 : 1) * ox * 0.30;
+                                ba.ox += sh;
+                                bb.ox -= sh;
+                                ba.vx *= 0.5;
+                                bb.vx *= 0.5;
+                            } else {
+                                var sv = (ddy < 0 ? -1 : 1) * oy * 0.30;
+                                ba.oy += sv;
+                                bb.oy -= sv;
+                                ba.vy *= 0.5;
+                                bb.vy *= 0.5;
                             }
                         }
                     }
                 }
             }
+        }
 
-            // 3) render, clamped inside the hero
-            for (k3 = 0; k3 < boxes.length; k3++) {
-                var bo = boxes[k3];
+        // 3) render, clamped inside the hero
+        function renderBoxes() {
+            for (var i = 0; i < boxes.length; i++) {
+                var bo = boxes[i];
                 var bhw = bo.w / 2,
                     bhh = bo.h / 2,
                     hx = bo.fx * W,
@@ -299,6 +332,34 @@
                     'translate(' + bo.ox.toFixed(1) + 'px,' + bo.oy.toFixed(1) + 'px) rotate(' +
                     (bo.rot + bo.oy * 0.10).toFixed(2) + 'deg)';
             }
+        }
+
+        function draw() {
+            if (W === 0) size();
+            posX = (active ? mouseX : W / 2);
+
+            if (reduceMotion) {
+                posY = baseY; // flat, no physics
+            } else {
+                var targetY = active ? mouseY : baseY;
+                var k = 0.055,
+                    damp = 0.80; // low damping = visible spring bounce
+                velY += (targetY - posY) * k;
+                velY *= damp;
+                posY += velY;
+            }
+
+            curveY = 2 * posY - baseY;
+            path.setAttribute('d', 'M 0 ' + baseY + ' Q ' + posX + ' ' + curveY + ' ' + W + ' ' + baseY);
+
+            grip.setAttribute('cx', posX);
+            grip.setAttribute('cy', posY);
+            grip.setAttribute('opacity', active ? 1 : 0);
+
+            // === rope as a physical body: it touches boxes and flings them ===
+            if (!reduceMotion) integrateBoxes();
+            if (!reduceMotion) separateBoxes();
+            renderBoxes();
 
             requestAnimationFrame(draw);
         }
@@ -429,7 +490,7 @@
             var front = document.createElement('div');
             front.className = 'face front';
             front.style.backgroundImage =
-                'linear-gradient(rgba(242,201,76,.1), rgba(20,43,77,.24))' + (FRONT ? ", url('" + FRONT + "')" : '');
+                'linear-gradient(rgba(255,174,66,.1), rgba(20,43,77,.24))' + (FRONT ? ", url('" + FRONT + "')" : '');
 
             var back = document.createElement('div');
             back.className = 'face back';
@@ -694,6 +755,14 @@
             if (updateHistory && window.location.hash !== '#' + id) {
                 window.history.pushState(null, '', '#' + id);
             }
+            if (id === 'register' || id === 'legal') {
+                window.requestAnimationFrame(function() {
+                    target.scrollIntoView({
+                        block: 'start',
+                        behavior: reduceMotion ? 'auto' : 'smooth'
+                    });
+                });
+            }
             document.dispatchEvent(new CustomEvent('pageviewchange', {
                 detail: { view: document.body.dataset.currentView }
             }));
@@ -716,6 +785,101 @@
         });
 
         showView(window.location.hash || '#hero', false);
+    })();
+
+    (function() {
+        var form = document.getElementById('siteSearchForm');
+        var input = document.getElementById('siteSearchInput');
+        var toggle = document.getElementById('siteSearchToggle');
+        var results = document.getElementById('siteSearchResults');
+        var main = document.getElementById('mainContent');
+        if (!form || !input || !toggle || !results || !main) return;
+
+        function setOpen(isOpen, shouldFocus) {
+            form.classList.toggle('is-open', isOpen);
+            input.disabled = !isOpen;
+            toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            toggle.setAttribute('aria-label', isOpen ? 'Close search' : 'Open search');
+            if (!isOpen) {
+                results.hidden = true;
+                input.setAttribute('aria-expanded', 'false');
+            }
+            if (isOpen && shouldFocus) input.focus();
+        }
+
+        function search(query) {
+            results.textContent = '';
+            if (!query) {
+                results.hidden = true;
+                input.setAttribute('aria-expanded', 'false');
+                return;
+            }
+            results.hidden = false;
+            input.setAttribute('aria-expanded', 'true');
+
+            var matches = Array.prototype.slice.call(main.querySelectorAll(':scope > [data-page-view]')).filter(function(view) {
+                return view.textContent.toLowerCase().indexOf(query) !== -1;
+            }).slice(0, 8);
+
+            if (!matches.length) {
+                var empty = document.createElement('p');
+                empty.textContent = 'No pages found. Try another search.';
+                results.appendChild(empty);
+                return;
+            }
+
+            var list = document.createElement('ul');
+            matches.forEach(function(view) {
+                var heading = view.querySelector('h1, h2');
+                var item = document.createElement('li');
+                var link = document.createElement('a');
+                link.href = '#' + view.id;
+                link.textContent = heading ? heading.textContent.trim() : view.id;
+                link.addEventListener('click', function() {
+                    input.value = '';
+                    setOpen(false, false);
+                });
+                item.appendChild(link);
+                list.appendChild(item);
+            });
+            results.appendChild(list);
+        }
+
+        toggle.addEventListener('click', function() {
+            setOpen(!form.classList.contains('is-open'), true);
+        });
+        input.addEventListener('input', function() {
+            search(input.value.trim().toLowerCase());
+        });
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            search(input.value.trim().toLowerCase());
+        });
+        input.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                if (input.value) {
+                    input.value = '';
+                    search('');
+                } else {
+                    setOpen(false, false);
+                    toggle.focus();
+                }
+            }
+        });
+        document.addEventListener('click', function(event) {
+            if (!form.contains(event.target)) {
+                setOpen(false, false);
+            }
+        });
+    })();
+
+    (function() {
+        var privacyPolicy = document.getElementById('privacyPolicyDetails');
+        if (!privacyPolicy) return;
+        privacyPolicy.open = false;
+        document.addEventListener('pageviewchange', function() {
+            privacyPolicy.open = false;
+        });
     })();
 
     (function() {
@@ -758,6 +922,177 @@
     })();
 
     (function() {
+        var flavorPickers = document.querySelectorAll('.product-flavor-picker select');
+        flavorPickers.forEach(function(picker) {
+            picker.addEventListener('change', function() {
+                var selectedOption = picker.options[picker.selectedIndex];
+                var productCard = picker.closest('.product-card');
+                var productImage = productCard && productCard.querySelector('.cell-media');
+                if (productImage && selectedOption.dataset.image) {
+                    productImage.style.backgroundImage = "url('" + selectedOption.dataset.image + "')";
+                }
+            });
+        });
+    })();
+
+    (function() {
+        var carousel = document.getElementById('productCarousel');
+        if (!carousel) return;
+
+        var items = Array.prototype.slice.call(carousel.querySelectorAll('.product-carousel-item'));
+        var ghost = document.getElementById('productCarouselGhost');
+        var name = document.getElementById('productCarouselName');
+        var description = document.getElementById('productCarouselDescription');
+        var price = document.getElementById('productCarouselPrice');
+        var stock = document.getElementById('productCarouselStock');
+        var flavorPicker = carousel.querySelector('.product-flavor-picker');
+        var flavorSelect = document.getElementById('productFlavorSelect');
+        var soyaButton = carousel.querySelector('.add-to-cart[data-product="soya-pop"]');
+        var nutflixButton = carousel.querySelector('.add-to-cart[data-product="nutflix"]');
+        var controls = Array.prototype.slice.call(carousel.querySelectorAll('.product-carousel-arrow'));
+        if (!items.length || !ghost || !name || !description || !price || !flavorPicker || !flavorSelect || !soyaButton || !nutflixButton) return;
+
+        var activeIndex = 0;
+
+        function render(index) {
+            activeIndex = (index + items.length) % items.length;
+            var selected = items[activeIndex];
+            var isSoya = !!selected.dataset.flavor;
+
+            carousel.style.backgroundColor = selected.dataset.color;
+            ghost.textContent = selected.dataset.ghost;
+            name.textContent = selected.dataset.name;
+            description.textContent = selected.dataset.description;
+            price.textContent = '₱' + Number(selected.dataset.price).toFixed(2);
+            if (stock) {
+                var available = Number(selected.dataset.stock);
+                var hasStock = Number.isInteger(available) && available >= 0;
+                stock.textContent = !hasStock
+                    ? 'Stock unavailable'
+                    : available === 0 ? 'Out of stock' : available + ' in stock';
+                stock.classList.toggle('is-sold-out', hasStock && available === 0);
+            }
+            flavorPicker.hidden = !isSoya;
+            soyaButton.hidden = !isSoya;
+            nutflixButton.hidden = isSoya;
+            flavorSelect.value = isSoya ? selected.dataset.flavor : 'Original';
+            soyaButton.dataset.stock = isSoya ? selected.dataset.stock : soyaButton.dataset.stock;
+            soyaButton.disabled = isSoya && Number(selected.dataset.stock) === 0;
+            nutflixButton.disabled = !isSoya && Number(selected.dataset.stock) === 0;
+
+            items.forEach(function(item, itemIndex) {
+                var offset = (itemIndex - activeIndex + items.length) % items.length;
+                item.classList.toggle('is-current', offset === 0);
+                item.classList.toggle('is-next', offset === 1);
+                item.classList.toggle('is-previous', offset === items.length - 1);
+                item.classList.toggle('is-behind', offset > 1 && offset < items.length - 1);
+                item.setAttribute('aria-pressed', offset === 0 ? 'true' : 'false');
+            });
+        }
+
+        function move(direction) {
+            render(activeIndex + direction);
+        }
+
+        items.forEach(function(item, index) {
+            item.addEventListener('click', function() {
+                render(index);
+            });
+        });
+
+        controls.forEach(function(control) {
+            control.addEventListener('click', function() {
+                move(Number(control.dataset.direction));
+            });
+        });
+
+        flavorSelect.addEventListener('change', function() {
+            var flavorIndex = items.findIndex(function(item) {
+                return item.dataset.flavor === flavorSelect.value;
+            });
+            if (flavorIndex >= 0) render(flavorIndex);
+        });
+
+        document.addEventListener('kinetix:inventory-loaded', function() {
+            render(activeIndex);
+        });
+
+        carousel.addEventListener('keydown', function(event) {
+            if (event.target === flavorSelect) return;
+            if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                move(-1);
+            } else if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                move(1);
+            }
+        });
+
+        render(activeIndex);
+    })();
+
+    (function() {
+        var videoSelect = document.getElementById('galleryVideoSelect');
+        var videoPlayer = document.getElementById('galleryVideoPlayer');
+        var videoSource = document.getElementById('galleryVideoSource');
+        if (!videoSelect || !videoPlayer || !videoSource) return;
+
+        videoSelect.addEventListener('change', function() {
+            var selectedOption = videoSelect.options[videoSelect.selectedIndex];
+            if (!selectedOption || !selectedOption.value) return;
+
+            videoPlayer.pause();
+            videoSource.src = selectedOption.value;
+            videoPlayer.setAttribute('aria-label', selectedOption.textContent.trim() + ' video');
+            videoPlayer.load();
+        });
+    })();
+
+    (function() {
+        var videoCards = document.querySelectorAll('[data-youtube-url]');
+        videoCards.forEach(function(card) {
+            var videoUrl = card.dataset.youtubeUrl.trim();
+            if (!videoUrl) return;
+
+            var url;
+            try {
+                url = new URL(videoUrl);
+            } catch (error) {
+                console.warn('Invalid YouTube video URL:', videoUrl, error);
+                return;
+            }
+
+            var videoId = '';
+            if (url.hostname === 'youtu.be') {
+                videoId = url.pathname.split('/')[1] || '';
+            } else if (url.hostname === 'youtube.com' || url.hostname.endsWith('.youtube.com')) {
+                videoId = url.searchParams.get('v') || '';
+                if (!videoId) {
+                    var pathMatch = url.pathname.match(/^\/(?:embed|shorts)\/([A-Za-z0-9_-]{11})(?:\/|$)/);
+                    videoId = pathMatch ? pathMatch[1] : '';
+                }
+            }
+
+            if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)) {
+                console.warn('YouTube URL does not contain a valid video ID:', videoUrl);
+                return;
+            }
+
+            var heading = card.closest('article') && card.closest('article').querySelector('h3');
+            var title = heading ? heading.textContent.trim() + ' product video' : 'Event video';
+            var player = document.createElement('iframe');
+            player.className = 'youtube-video-frame';
+            player.title = title;
+            player.src = 'https://www.youtube-nocookie.com/embed/' + videoId + '?rel=0';
+            player.loading = 'lazy';
+            player.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            player.allowFullscreen = true;
+            card.replaceChildren(player);
+            card.classList.add('is-playing');
+        });
+    })();
+
+    (function() {
         var buttons = Array.prototype.slice.call(document.querySelectorAll('.add-to-cart'));
         var productCount = document.getElementById('productCartCount');
         var cartToggle = document.getElementById('cartToggle');
@@ -782,7 +1117,17 @@
             var savedCart = window.localStorage.getItem(browserCartKey);
             if (!savedCart) return [];
 
-            var items = JSON.parse(savedCart);
+            var items;
+            try {
+                items = JSON.parse(savedCart);
+            } catch (error) {
+                try {
+                    window.localStorage.removeItem(browserCartKey);
+                } catch (cleanupError) {
+                    console.error('Unable to clear the corrupted Kinetix cart:', cleanupError);
+                }
+                return [];
+            }
             if (!Array.isArray(items) || items.some(function(item) {
                 return !item || typeof item.productId !== 'string' ||
                     typeof item.name !== 'string' || !Number.isInteger(item.quantity) ||
@@ -804,50 +1149,67 @@
             };
         }
 
+        function findButtonByProduct(productId) {
+            return buttons.find(function(entry) {
+                return entry.dataset.product === productId;
+            });
+        }
+
+        function addItem(items, data) {
+            var button = findButtonByProduct(data && data.productId);
+            if (!button) throw new Error('Choose a valid product.');
+            var itemKey = data && data.flavor ? button.dataset.product + ':' + data.flavor : button.dataset.product;
+            var existingItem = items.find(function(item) {
+                return (item.key || item.productId) === itemKey;
+            });
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                var name = data && typeof data.name === 'string' ? data.name : button.dataset.name;
+                items.push({ key: itemKey, productId: button.dataset.product, name: name, quantity: 1 });
+            }
+            return items;
+        }
+
+        function decrementItem(items, key) {
+            var decrementId = decodeURIComponent(key);
+            var index = items.findIndex(function(item) {
+                return (item.key || item.productId).toLowerCase() === decrementId.toLowerCase();
+            });
+            if (index >= 0) {
+                if (items[index].quantity > 1) {
+                    items[index].quantity -= 1;
+                } else {
+                    items.splice(index, 1);
+                }
+            }
+            return items;
+        }
+
+        function removeItem(items, key) {
+            var removeId = decodeURIComponent(key).toLowerCase();
+            return items.filter(function(item) {
+                return (item.key || item.productId).toLowerCase() !== removeId;
+            });
+        }
+
         function requestBrowserCart(path, method, data) {
             var items = readBrowserCart();
             if (method === 'GET') return browserCartSnapshot(items);
 
+            var decrementMatch = method === 'POST' && path && path.match(/^\/items\/([^/]+)\/decrement$/);
+            var itemMatch = method === 'DELETE' && path && path.match(/^\/items\/([^/]+)$/);
+
             if (method === 'DELETE' && !path) {
                 items = [];
             } else if (method === 'POST' && path === '/items') {
-                var button = buttons.find(function(entry) {
-                    return entry.dataset.product === (data && data.productId);
-                });
-                if (!button) throw new Error('Choose a valid product.');
-                var itemKey = data && data.flavor ? button.dataset.product + ':' + data.flavor : button.dataset.product;
-                var existingItem = items.find(function(item) {
-                    return (item.key || item.productId) === itemKey;
-                });
-                if (existingItem) {
-                    existingItem.quantity += 1;
-                } else {
-                    var name = data && typeof data.name === 'string' ? data.name : button.dataset.name;
-                    items.push({ key: itemKey, productId: button.dataset.product, name: name, quantity: 1 });
-                }
+                items = addItem(items, data);
+            } else if (decrementMatch) {
+                items = decrementItem(items, decrementMatch[1]);
+            } else if (itemMatch) {
+                items = removeItem(items, itemMatch[1]);
             } else {
-                var decrementMatch = path.match(/^\/items\/([^/]+)\/decrement$/);
-                var itemMatch = path.match(/^\/items\/([^/]+)$/);
-                if (method === 'POST' && decrementMatch) {
-                    var decrementId = decodeURIComponent(decrementMatch[1]);
-                    var decrementIndex = items.findIndex(function(item) {
-                        return (item.key || item.productId).toLowerCase() === decrementId.toLowerCase();
-                    });
-                    if (decrementIndex >= 0) {
-                        if (items[decrementIndex].quantity > 1) {
-                            items[decrementIndex].quantity -= 1;
-                        } else {
-                            items.splice(decrementIndex, 1);
-                        }
-                    }
-                } else if (method === 'DELETE' && itemMatch) {
-                    var removeId = decodeURIComponent(itemMatch[1]).toLowerCase();
-                    items = items.filter(function(item) {
-                        return (item.key || item.productId).toLowerCase() !== removeId;
-                    });
-                } else {
-                    throw new Error('Unsupported cart operation.');
-                }
+                throw new Error('Unsupported cart operation.');
             }
 
             window.localStorage.setItem(browserCartKey, JSON.stringify(items));
@@ -859,13 +1221,22 @@
         }
 
         function getProductPrice(productId) {
-            var button = document.querySelector('.add-to-cart[data-product="' + productId + '"]');
+            var button = findButtonByProduct(productId);
             return Number(button && button.dataset.price ? button.dataset.price : 0);
         }
 
         function getSelectedFlavor(productId) {
             var picker = document.querySelector('.product-flavor-picker[data-product="' + productId + '"] select');
             return picker ? (picker.value || 'Original') : 'Original';
+        }
+
+        function getStockFor(productId, flavor) {
+            if (productId === 'soya-pop') {
+                var item = document.querySelector('.product-carousel-item[data-product="soya-pop"][data-flavor="' + flavor + '"]');
+                return item && item.dataset.stock !== undefined ? Number(item.dataset.stock) : null;
+            }
+            var button = findButtonByProduct(productId);
+            return button && button.dataset.stock !== undefined ? Number(button.dataset.stock) : null;
         }
 
         async function requestCart(path, method, data) {
@@ -876,8 +1247,14 @@
                 options.body = JSON.stringify(data);
             }
             var response = await fetch(cartEndpoint + path, options);
-            var result = await response.json();
-            if (!response.ok) throw new Error(result.error || 'Cart request failed.');
+            var rawBody = await response.text();
+            var result = null;
+            try {
+                result = rawBody ? JSON.parse(rawBody) : null;
+            } catch (error) {
+                result = null;
+            }
+            if (!response.ok) throw new Error((result && result.error) || 'Cart request failed with HTTP ' + response.status + '.');
             return result;
         }
 
@@ -958,7 +1335,13 @@
                 quantity.textContent = item.quantity;
                 controls.appendChild(quantity);
                 controls.appendChild(makeAction('+', 'Add one ' + item.name, async function() {
-                    await updateCart('/items', 'POST', { productId: item.productId, name: item.name, flavor: item.key ? item.key.split(':')[1] : undefined });
+                    var flavor = item.flavor || (item.key ? item.key.split(':')[1] : undefined);
+                    var stock = getStockFor(item.productId, flavor || 'Original');
+                    if (stock !== null && item.quantity >= stock) {
+                        cartMessage.textContent = 'There is not enough stock available for ' + item.name + '.';
+                        return;
+                    }
+                    await updateCart('/items', 'POST', { productId: item.productId, name: item.name, flavor: flavor });
                 }));
                 controls.appendChild(makeAction('×', 'Remove ' + item.name + ' from cart', async function() {
                     await updateCart('/items/' + encodeURIComponent(itemKey), 'DELETE');
@@ -997,10 +1380,20 @@
                 e.stopPropagation();
                 button.disabled = true;
                 var flavor = getSelectedFlavor(button.dataset.product);
+                var itemKey = button.dataset.product === 'soya-pop' ? button.dataset.product + ':' + flavor : button.dataset.product;
+                var existingItem = lastItems.find(function(item) {
+                    return (item.key || item.productId) === itemKey;
+                });
+                var stock = getStockFor(button.dataset.product, flavor);
+                if (stock !== null && (existingItem ? existingItem.quantity : 0) >= stock) {
+                    cartMessage.textContent = 'There is not enough stock available for ' + button.dataset.name + '.';
+                    button.disabled = stock === 0;
+                    return;
+                }
                 var productName = button.dataset.name + (button.dataset.product === 'soya-pop' ? ' - ' + flavor : '');
                 await updateCart('/items', 'POST', { productId: button.dataset.product, name: productName, flavor: button.dataset.product === 'soya-pop' ? flavor : undefined });
                 setPanelOpen(true);
-                button.disabled = false;
+                button.disabled = button.dataset.stock !== undefined && Number(button.dataset.stock) === 0;
             });
         });
 
@@ -1026,6 +1419,7 @@
         var billingForm = document.getElementById('billingForm');
         var billingReceipt = document.getElementById('billingReceipt');
         var billingError = document.getElementById('billingError');
+        var pendingOrderNumber = null;
 
         function cartTotalValue() {
             return lastItems.reduce(function(sum, item) {
@@ -1034,6 +1428,7 @@
         }
 
         function openBilling() {
+            pendingOrderNumber = null;
             var lines = document.getElementById('billingLines');
             lines.replaceChildren();
             lastItems.forEach(function(item) {
@@ -1058,6 +1453,7 @@
 
         function closeBilling() {
             billingModal.hidden = true;
+            pendingOrderNumber = null;
         }
 
         document.getElementById('billingClose').addEventListener('click', closeBilling);
@@ -1083,8 +1479,9 @@
                 return;
             }
             var now = new Date();
+            pendingOrderNumber = pendingOrderNumber || ('KNX-' + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + '-' + Math.floor(1000 + Math.random() * 9000));
             var order = {
-                orderNumber: 'KNX-' + now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + '-' + Math.floor(1000 + Math.random() * 9000),
+                orderNumber: pendingOrderNumber,
                 date: now.toLocaleString(),
                 customer: { name: name, phone: phone, email: email, place: place },
                 payment: document.getElementById('billPayment').value,
@@ -1095,11 +1492,62 @@
                 }),
                 total: cartTotalValue()
             };
+            var submitButton = billingForm.querySelector('button[type="submit"]');
+            var requestedQuantities = {};
+            lastItems.forEach(function(item) {
+                var flavor = item.productId === 'soya-pop'
+                    ? (item.flavor || (item.key ? item.key.split(':')[1] : item.name.split(' - ')[1]) || 'Original')
+                    : null;
+                var key = item.productId === 'soya-pop' ? item.productId + ':' + flavor : item.productId;
+                if (!requestedQuantities[key]) requestedQuantities[key] = { productId: item.productId, flavor: flavor, quantity: 0 };
+                requestedQuantities[key].quantity += item.quantity;
+            });
+            submitButton.disabled = true;
             try {
-                var orders = JSON.parse(window.localStorage.getItem('kinetix-orders') || '[]');
-                orders.push(order);
-                window.localStorage.setItem('kinetix-orders', JSON.stringify(orders));
-            } catch (err) { /* receipt still shown */ }
+                var response = await fetch('/api/orders/reserve', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderNumber: order.orderNumber,
+                        items: Object.keys(requestedQuantities).map(function(key) { return requestedQuantities[key]; }),
+                        order: {
+                            customer: order.customer,
+                            payment: order.payment,
+                            notes: order.notes,
+                            items: lastItems.map(function(item) {
+                                var flavor = item.productId === 'soya-pop'
+                                    ? (item.flavor || (item.key ? item.key.split(':')[1] : item.name.split(' - ')[1]) || 'Original')
+                                    : null;
+                                return { productId: item.productId, flavor: flavor, quantity: item.quantity };
+                            })
+                        }
+                    })
+                });
+                try {
+                    var reservation = await response.json();
+                } catch (error) {
+                    throw new Error(response.ok
+                        ? 'The server returned an unreadable inventory response.'
+                        : 'Unable to reserve stock (HTTP ' + response.status + ').');
+                }
+                if (!response.ok) throw new Error(reservation.error || 'Unable to reserve stock.');
+                if (reservation.reserved !== true) throw new Error('The server did not confirm the stock reservation.');
+                if (!reservation.order) throw new Error('The server did not confirm the order details.');
+                order.orderNumber = reservation.order.orderNumber;
+                order.date = new Date(reservation.order.createdAt).toLocaleString();
+                order.customer = reservation.order.customer;
+                order.payment = reservation.order.payment;
+                order.notes = reservation.order.notes || '';
+                order.items = reservation.order.items;
+                order.total = reservation.order.total;
+            } catch (error) {
+                billingError.textContent = error.message || 'Unable to place the order. Please try again.';
+                submitButton.disabled = false;
+                return;
+            }
+            pendingOrderNumber = null;
+            document.dispatchEvent(new Event('kinetix:inventory-updated'));
 
             billingReceipt.replaceChildren();
             function add(tag, text, cls) {
@@ -1182,26 +1630,9 @@
     (function() {
         var form = document.getElementById('regForm');
         if (!form) return;
-        var key = 'kinetix-registrations';
         var formCard = document.getElementById('regFormCard');
         var passCard = document.getElementById('regPassCard');
         var errBox = document.getElementById('regError');
-
-        function load() {
-            try { return JSON.parse(window.localStorage.getItem(key) || '[]'); } catch (e) { return []; }
-        }
-        function save(list) {
-            try { window.localStorage.setItem(key, JSON.stringify(list)); } catch (e) { /* pass is still shown */ }
-        }
-        function makeCode(list) {
-            var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-            var code;
-            do {
-                code = 'KNX-REG-';
-                for (var i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
-            } while (list.some(function(r) { return r.code === code; }));
-            return code;
-        }
         function row(label, value) {
             var p = document.createElement('p');
             var b = document.createElement('strong');
@@ -1254,7 +1685,7 @@
             passCard.hidden = false;
         }
 
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
             var name = document.getElementById('regName').value.trim();
             var email = document.getElementById('regEmail').value.trim();
@@ -1264,22 +1695,49 @@
                 return;
             }
             errBox.textContent = '';
-            var list = load();
-            var reg = {
-                code: makeCode(list),
-                name: name,
-                email: email,
-                phone: phone,
-                school: document.getElementById('regSchool').value.trim(),
-                event: document.getElementById('regEvent').value,
-                category: document.getElementById('regCategory').value,
-                date: new Date().toLocaleString(),
-                checkedIn: null
-            };
-            list.push(reg);
-            save(list);
-            showPass(reg);
-            form.reset();
+            var submitButton = form.querySelector('[type="submit"]');
+            submitButton.disabled = true;
+            try {
+                var response = await fetch('/api/registrations', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        phone: phone,
+                        school: document.getElementById('regSchool').value.trim(),
+                        event: document.getElementById('regEvent').value,
+                        category: document.getElementById('regCategory').value
+                    })
+                });
+                var result;
+                try {
+                    result = await response.json();
+                } catch (error) {
+                    throw new Error(response.ok
+                        ? 'The registration server returned an unreadable response.'
+                        : 'Registration could not be saved (HTTP ' + response.status + ').');
+                }
+                if (!response.ok) throw new Error(result.error || 'Registration could not be saved.');
+                showPass({
+                    code: result.code,
+                    name: result.name,
+                    email: result.email,
+                    phone: result.phone,
+                    school: result.school,
+                    event: result.event,
+                    category: result.category,
+                    date: new Date(result.createdAt).toLocaleString()
+                });
+                form.reset();
+            } catch (error) {
+                errBox.textContent = error.message === 'Failed to fetch'
+                    ? 'Registration could not be saved. Start the Kinetix backend and try again.'
+                    : error.message || 'Registration could not be saved. Please try again.';
+            } finally {
+                submitButton.disabled = false;
+            }
         });
 
         document.getElementById('regNew').addEventListener('click', function() {
@@ -1294,8 +1752,9 @@
         var items = Array.prototype.slice.call(grid.children);
         items.sort(function(a, b) { return b.dataset.sort.localeCompare(a.dataset.sort); });
         items.forEach(function(i) { grid.appendChild(i); });
-        var current = 0;
-        var title = document.getElementById('galTitle');
+        var current = Math.max(0, items.findIndex(function(item) {
+            return item.dataset.front === 'true';
+        }));
         var box = document.getElementById('galLightbox');
 
         function layout() {
@@ -1307,15 +1766,12 @@
                 it.dataset.pos = Math.abs(d) > 2 ? 'far' : String(d);
                 it.classList.toggle('is-current', d === 0);
             });
-            var cap = items[current].querySelector('figcaption');
-            title.textContent = cap.querySelector('strong').textContent;
         }
         function go(step) { current = (current + step + items.length) % items.length; layout(); }
         function openPhoto(item) {
             var img = item.querySelector('img');
             document.getElementById('galLightImg').src = img.src;
             document.getElementById('galLightImg').alt = img.alt;
-            document.getElementById('galLightCap').textContent = item.querySelector('figcaption').textContent;
             box.hidden = false;
         }
         items.forEach(function(it, idx) {
@@ -1329,34 +1785,6 @@
         document.addEventListener('keydown', function(e) { if (e.key === 'Escape') box.hidden = true; });
         layout();
 
-        // Add videos here: { src: 'videos/file.mp4', title: 'Video title' }
-        var GALLERY_VIDEOS = [];
-        var player = document.getElementById('galPlayer');
-        var list = document.getElementById('galPlaylist');
-        var empty = document.getElementById('galVideoEmpty');
-        function playVideo(idx) {
-            player.src = GALLERY_VIDEOS[idx].src;
-            player.muted = true;
-            player.play().catch(function() {});
-            Array.prototype.forEach.call(list.children, function(b, i) { b.classList.toggle('is-active', i === idx); });
-        }
-        if (GALLERY_VIDEOS.length) {
-            empty.hidden = true;
-            player.hidden = false;
-            GALLERY_VIDEOS.forEach(function(v, idx) {
-                var b = document.createElement('button');
-                b.type = 'button';
-                b.className = 'gal-chip';
-                b.textContent = v.title;
-                b.addEventListener('click', function() { playVideo(idx); });
-                list.appendChild(b);
-            });
-            player.addEventListener('ended', function() {
-                var next = (Array.prototype.findIndex.call(list.children, function(b) { return b.classList.contains('is-active'); }) + 1) % GALLERY_VIDEOS.length;
-                playVideo(next);
-            });
-            playVideo(0);
-        }
     })();
 
     (function() {
@@ -1395,6 +1823,395 @@
                 localStorage.setItem('kinetix-theme', theme);
             } catch (e) {}
         });
+    })();
+
+    (function teamPlayerCarousel() {
+        var section = document.querySelector('.team-section');
+        var sourceList = section && section.querySelector('.team-grid');
+        if (!section || !sourceList) return;
+
+        var members = Array.from(sourceList.querySelectorAll('.team-card')).map(function (source) {
+            var image = source.querySelector('.team-avatar img');
+            var name = source.querySelector('h3');
+            var role = source.querySelector('.team-role');
+            var description = source.querySelector('p');
+            if (!image || !name || !role || !description) return null;
+            return {
+                image: image.getAttribute('src'),
+                name: name.textContent.trim(),
+                role: role.textContent.trim(),
+                description: description.textContent.trim()
+            };
+        }).filter(Boolean);
+        if (!members.length) return;
+
+        var carousel = document.createElement('div');
+        carousel.className = 'team-carousel';
+        carousel.setAttribute('role', 'region');
+        carousel.setAttribute('aria-label', 'Meet the team carousel');
+
+        var stage = document.createElement('div');
+        stage.className = 'team-player-stage';
+        stage.setAttribute('aria-live', 'polite');
+        stage.setAttribute('aria-atomic', 'true');
+        var cards = members.map(function (member, index) {
+            var card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'team-player-card';
+            card.dataset.index = String(index);
+            card.setAttribute('aria-label', 'Select ' + member.name + ', ' + member.role);
+
+            var image = document.createElement('img');
+            image.className = 'team-player-photo';
+            image.src = member.image;
+            image.alt = '';
+            image.draggable = false;
+
+            var content = document.createElement('span');
+            content.className = 'team-player-content';
+            var number = document.createElement('span');
+            number.className = 'team-player-number';
+            number.textContent = String(index + 1).padStart(2, '0') + ' / ' + String(members.length).padStart(2, '0');
+            var name = document.createElement('span');
+            name.className = 'team-player-name';
+            name.textContent = member.name;
+            var role = document.createElement('span');
+            role.className = 'team-player-role';
+            role.textContent = member.role;
+            var description = document.createElement('span');
+            description.className = 'team-player-description';
+            description.textContent = member.description;
+            content.append(number, name, role, description);
+            card.append(image, content);
+            stage.append(card);
+            return card;
+        });
+
+        var controls = document.createElement('div');
+        controls.className = 'team-carousel-controls';
+        var previous = document.createElement('button');
+        previous.type = 'button';
+        previous.className = 'team-carousel-arrow';
+        previous.setAttribute('aria-label', 'Previous team member');
+        previous.textContent = '←';
+        var counter = document.createElement('span');
+        counter.className = 'team-carousel-counter';
+        counter.setAttribute('aria-hidden', 'true');
+        var next = document.createElement('button');
+        next.type = 'button';
+        next.className = 'team-carousel-arrow';
+        next.setAttribute('aria-label', 'Next team member');
+        next.textContent = '→';
+        controls.append(previous, counter, next);
+
+        var selector = document.createElement('div');
+        selector.className = 'team-carousel-selector';
+        selector.setAttribute('role', 'group');
+        selector.setAttribute('aria-label', 'Choose a team member');
+        var choices = members.map(function (member, index) {
+            var choice = document.createElement('button');
+            choice.type = 'button';
+            choice.className = 'team-carousel-choice';
+            choice.dataset.index = String(index);
+            choice.setAttribute('aria-label', 'Show ' + member.name + ', ' + member.role);
+            choice.setAttribute('aria-pressed', 'false');
+            var image = document.createElement('img');
+            image.src = member.image;
+            image.alt = '';
+            image.loading = 'lazy';
+            var name = document.createElement('span');
+            name.textContent = member.name;
+            choice.append(image, name);
+            selector.append(choice);
+            return choice;
+        });
+        carousel.append(stage, controls, selector);
+        sourceList.hidden = true;
+        sourceList.before(carousel);
+
+        var activeIndex = 0;
+        function select(index, scrollChoice) {
+            activeIndex = (index + members.length) % members.length;
+            cards.forEach(function (card, cardIndex) {
+                var offset = cardIndex - activeIndex;
+                if (offset > members.length / 2) offset -= members.length;
+                if (offset < -members.length / 2) offset += members.length;
+                card.classList.toggle('is-active', offset === 0);
+                card.classList.toggle('is-previous', offset === -1);
+                card.classList.toggle('is-next', offset === 1);
+                card.classList.toggle('is-hidden', Math.abs(offset) > 1);
+                card.setAttribute('aria-hidden', String(Math.abs(offset) > 1));
+                card.tabIndex = Math.abs(offset) <= 1 ? 0 : -1;
+            });
+            choices.forEach(function (choice, choiceIndex) {
+                var active = choiceIndex === activeIndex;
+                choice.classList.toggle('is-selected', active);
+                choice.setAttribute('aria-pressed', String(active));
+                if (active && scrollChoice && choice.scrollIntoView) {
+                    choice.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            });
+            counter.textContent = String(activeIndex + 1).padStart(2, '0') + ' / ' + String(members.length).padStart(2, '0');
+        }
+
+        previous.addEventListener('click', function () { select(activeIndex - 1, true); });
+        next.addEventListener('click', function () { select(activeIndex + 1, true); });
+        stage.addEventListener('click', function (event) {
+            var card = event.target.closest('.team-player-card');
+            if (!card) return;
+            var index = Number(card.dataset.index);
+            if (index !== activeIndex) select(index, true);
+        });
+        selector.addEventListener('click', function (event) {
+            var choice = event.target.closest('.team-carousel-choice');
+            if (choice) select(Number(choice.dataset.index), true);
+        });
+        carousel.addEventListener('keydown', function (event) {
+            if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                select(activeIndex - 1, true);
+            } else if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                select(activeIndex + 1, true);
+            }
+        });
+        stage.addEventListener('pointermove', function (event) {
+            var card = event.target.closest('.team-player-card.is-active');
+            if (!card || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+            var bounds = card.getBoundingClientRect();
+            var rotateY = ((event.clientX - bounds.left) / bounds.width - .5) * 12;
+            var rotateX = (.5 - (event.clientY - bounds.top) / bounds.height) * 10;
+            card.style.setProperty('--tilt-x', rotateX.toFixed(2) + 'deg');
+            card.style.setProperty('--tilt-y', rotateY.toFixed(2) + 'deg');
+        });
+        stage.addEventListener('pointerleave', function () {
+            cards.forEach(function (card) {
+                card.style.removeProperty('--tilt-x');
+                card.style.removeProperty('--tilt-y');
+            });
+        });
+        select(0);
+    })();
+
+    (function interactiveLayer() {
+        var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+        var bar = document.createElement('div');
+        bar.className = 'scroll-progress';
+        document.body.appendChild(bar);
+
+        var top = document.createElement('button');
+        top.type = 'button';
+        top.className = 'back-to-top';
+        top.setAttribute('aria-label', 'Back to top');
+        top.textContent = '\u2191';
+        document.body.appendChild(top);
+
+        function scroller() {
+            var v = document.querySelector('[data-page-view]:not([hidden])');
+            return v && v.scrollHeight > v.clientHeight + 4 && getComputedStyle(v).overflowY !== 'visible' ? v : null;
+        }
+        function update() {
+            var s = scroller();
+            var y = s ? s.scrollTop : window.scrollY;
+            var max = s ? s.scrollHeight - s.clientHeight : document.documentElement.scrollHeight - window.innerHeight;
+            bar.style.transform = 'scaleX(' + (max > 0 ? Math.min(1, y / max) : 0) + ')';
+            top.classList.toggle('show', y > 400);
+        }
+        window.addEventListener('scroll', update, { passive: true });
+        document.addEventListener('scroll', update, { passive: true, capture: true });
+        window.addEventListener('hashchange', function () { setTimeout(update, 50); });
+        top.addEventListener('click', function () {
+            var s = scroller();
+            (s || window).scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+        });
+        update();
+
+        if (!fine || reduce) return;
+
+        var glow = document.createElement('div');
+        glow.className = 'cursor-glow';
+        document.body.appendChild(glow);
+        document.addEventListener('mousemove', function (e) {
+            glow.style.transform = 'translate(' + e.clientX + 'px,' + e.clientY + 'px)';
+            glow.classList.add('on');
+        });
+        document.addEventListener('mouseleave', function () { glow.classList.remove('on'); });
+
+        var tiltSel = '.product-card, .cell, .gallery-item, .hero-photo, .purpose-item';
+        document.addEventListener('mousemove', function (e) {
+            var el = e.target.closest && e.target.closest(tiltSel);
+            if (!el) return;
+            var r = el.getBoundingClientRect();
+            var x = (e.clientX - r.left) / r.width - 0.5;
+            var y = (e.clientY - r.top) / r.height - 0.5;
+            el.style.setProperty('--tilt-x', (-y * 6).toFixed(2) + 'deg');
+            el.style.setProperty('--tilt-y', (x * 6).toFixed(2) + 'deg');
+            el.classList.add('is-tilting');
+        });
+        document.addEventListener('mouseout', function (e) {
+            var el = e.target.closest && e.target.closest(tiltSel);
+            if (el && !el.contains(e.relatedTarget)) {
+                el.classList.remove('is-tilting');
+                el.style.removeProperty('--tilt-x');
+                el.style.removeProperty('--tilt-y');
+            }
+        });
+
+        document.addEventListener('mousemove', function (e) {
+            var b = e.target.closest && e.target.closest('.hero-cta, .add-to-cart, .checkout-btn');
+            if (!b) return;
+            var r = b.getBoundingClientRect();
+            b.style.transform = 'translate(' + ((e.clientX - r.left - r.width / 2) * 0.12).toFixed(1) + 'px,' + ((e.clientY - r.top - r.height / 2) * 0.2).toFixed(1) + 'px)';
+        });
+        document.addEventListener('mouseout', function (e) {
+            var b = e.target.closest && e.target.closest('.hero-cta, .add-to-cart, .checkout-btn');
+            if (b && !b.contains(e.relatedTarget)) b.style.transform = '';
+        });
+    })();
+
+    (function roboticsAtmosphere() {
+        var hero = document.getElementById('hero');
+        if (!hero) return;
+
+        var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var canvas = document.createElement('canvas');
+        canvas.className = 'kinetix-particles';
+        canvas.setAttribute('aria-hidden', 'true');
+        document.body.insertBefore(canvas, document.body.firstChild);
+
+        var context = canvas.getContext('2d');
+        if (!context) {
+            canvas.remove();
+            return;
+        }
+
+        var width = 0;
+        var height = 0;
+        var pixelRatio = 1;
+        var particles = [];
+        var pointer = { x: -1000, y: -1000 };
+        var gold = getComputedStyle(document.documentElement).getPropertyValue('--gold').trim() || '#FFAE42';
+        var animationFrame = 0;
+
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+            canvas.width = Math.round(width * pixelRatio);
+            canvas.height = Math.round(height * pixelRatio);
+            context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+            var count = Math.min(70, Math.max(24, Math.floor(width * height / 22000)));
+            particles = [];
+            for (var i = 0; i < count; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - .5) * .28,
+                    vy: (Math.random() - .5) * .28
+                });
+            }
+            draw();
+        }
+
+        function draw() {
+            animationFrame = 0;
+            if (document.hidden) return;
+
+            context.clearRect(0, 0, width, height);
+            if (!reduceMotion) {
+                particles.forEach(function(particle) {
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    if (particle.x < 0 || particle.x > width) particle.vx *= -1;
+                    if (particle.y < 0 || particle.y > height) particle.vy *= -1;
+                });
+            }
+
+            for (var i = 0; i < particles.length; i++) {
+                for (var j = i + 1; j < particles.length; j++) {
+                    var first = particles[i];
+                    var second = particles[j];
+                    var distance = Math.hypot(first.x - second.x, first.y - second.y);
+                    if (distance < 132) {
+                        context.globalAlpha = .13 * (1 - distance / 132);
+                        context.strokeStyle = gold;
+                        context.beginPath();
+                        context.moveTo(first.x, first.y);
+                        context.lineTo(second.x, second.y);
+                        context.stroke();
+                    }
+                }
+
+                var node = particles[i];
+                var pointerDistance = Math.hypot(node.x - pointer.x, node.y - pointer.y);
+                if (pointerDistance < 150) {
+                    context.globalAlpha = .2 * (1 - pointerDistance / 150);
+                    context.beginPath();
+                    context.moveTo(node.x, node.y);
+                    context.lineTo(pointer.x, pointer.y);
+                    context.stroke();
+                }
+            }
+
+            context.globalAlpha = .55;
+            context.fillStyle = gold;
+            particles.forEach(function(particle) {
+                context.beginPath();
+                context.arc(particle.x, particle.y, 1.35, 0, Math.PI * 2);
+                context.fill();
+            });
+            context.globalAlpha = 1;
+
+            if (!reduceMotion) animationFrame = window.requestAnimationFrame(draw);
+        }
+
+        function scheduleDraw() {
+            if (!reduceMotion && !document.hidden && !animationFrame) {
+                animationFrame = window.requestAnimationFrame(draw);
+            }
+        }
+
+        resize();
+        window.addEventListener('resize', resize, { passive: true });
+        document.addEventListener('mousemove', function(event) {
+            pointer.x = event.clientX;
+            pointer.y = event.clientY;
+        }, { passive: true });
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden && animationFrame) {
+                window.cancelAnimationFrame(animationFrame);
+                animationFrame = 0;
+            } else {
+                scheduleDraw();
+            }
+        });
+
+        new MutationObserver(function() {
+            gold = getComputedStyle(document.documentElement).getPropertyValue('--gold').trim() || gold;
+            scheduleDraw();
+        }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+        if ('IntersectionObserver' in window && !reduceMotion) {
+            var revealObserver = new IntersectionObserver(function(entries, observer) {
+                entries.forEach(function(entry) {
+                    if (!entry.isIntersecting) return;
+                    entry.target.classList.add('is-visible');
+                    observer.unobserve(entry.target);
+                });
+            }, { threshold: .12 });
+
+            document.querySelectorAll(
+                '.section-head, .reveal-cap, .purpose-item, .team-card, .category-column, ' +
+                '.contact-item, .legal-item, .reg-card, .gal-item, .announcement-card'
+            ).forEach(function(element, index) {
+                element.classList.add('kinetix-scroll-reveal');
+                element.style.transitionDelay = (index % 4) * 55 + 'ms';
+                revealObserver.observe(element);
+            });
+        }
     })();
 
 })();

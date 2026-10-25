@@ -2,3 +2,11 @@ bin/
 obj/
 cart.json
 cart.json.tmp
+products.json
+products.json.tmp
+orders.json
+orders.json.tmp
+customer-orders.json
+customer-orders.json.tmp
+registrations.json
+registrations.json.tmp
