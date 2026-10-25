@@ -5,4 +5,4 @@ pages_build_output_dir = "."
 [[d1_databases]]
 binding = "DB"
 database_name = "kinetix-db"
-database_id = "363f9d64-b66b-48c9-ab1b-72b899bce4e3"
+database_id = "8afe14c7-a5eb-4c29-bdb5-9fc5ca93e582"
