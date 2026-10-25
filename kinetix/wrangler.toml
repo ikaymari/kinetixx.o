@@ -1,0 +1,8 @@
+name = "kinetix-org"
+compatibility_date = "2025-02-24"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "kinetix-db"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"

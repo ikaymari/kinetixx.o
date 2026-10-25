@@ -1,0 +1,17 @@
+backend/**
+.dockerignore
+Dockerfile
+schema.sql
+wrangler.toml
+videos - Shortcut.lnk
+*.bat
+*.ps1
+.vscode/**
+models/**
+videos/Physical Education Promotional.mp4
+videos/Nutflix.mp4
+videos/SoyaPop.mp4
+videos/Teaser (BPE).mp4
+images/SEMINAR/videos/Physical Education Promotional_.mp4
+images/SEMINAR/videos/Physical Education Promotional.mp4
+images/SEMINAR/videos/Teaser (BPE).mp4

@@ -12,13 +12,11 @@ For local development, the launcher sets `Admin` / `kenken` when credentials are
 
 The script starts the API-backed site and opens it after its health check succeeds. Then open `http://127.0.0.1:5087/admin.html` and sign in with `Admin` / `kenken`. If the backend was already running before you changed credentials, stop and restart it for the new settings to take effect. For any non-local deployment, set strong `KINETIX_ADMIN_USERNAME` and `KINETIX_ADMIN_PASSWORD` values in the server environment, and use HTTPS. Do not use the local development credentials outside your computer. The admin session is held in an HttpOnly, SameSite cookie and expires after eight hours. The admin page supports editing product prices and stock counts, plus creating, editing, publishing, and deleting announcements. Published announcements appear on the home page. Inventory starts at zero until an administrator sets the real stock counts.
 
-## Render deployment
+## Free Cloudflare deployment
 
-GitHub Pages cannot run this backend. Deploy the website and backend together as one web service to keep the browser and API on the same origin. A Render Blueprint is provided at the repository root in `render.yaml`; it builds `kinetix/Dockerfile`, checks `/health`, and mounts a persistent disk at `/var/data`.
+For a no-cost hosted API and persistent shared data, use Cloudflare Pages Functions and D1. Setup instructions are in the repository's [README.md](../../README.md#free-cloudflare-deployment); apply `kinetix/schema.sql`, set the D1 database ID in `kinetix/wrangler.toml`, and configure `KINETIX_ADMIN_USERNAME` and `KINETIX_ADMIN_PASSWORD` as Cloudflare secrets. Do not store production credentials in this repository. The Cloudflare Pages URL hosts both the frontend and same-origin API. The GitHub Pages URL remains static unless redirected to the Cloudflare deployment.
 
-In Render, create a new Blueprint from this repository and deploy the `kinetix-org-ikaymari` service. Provide unique values for `KINETIX_ADMIN_USERNAME` and `KINETIX_ADMIN_PASSWORD` when prompted. The service stores runtime JSON data under `KINETIX_DATA_PATH`; the Blueprint sets this to the persistent disk. New deployments start with zero inventory. Set the real stock and prices after signing into the hosted Admin page.
-
-The Render service URL serves the website and API together. To forward the existing GitHub Pages URL to that service, update the repository-root `index.html` redirect after Render assigns the service URL. Never put admin credentials in the repository or frontend files.
+The older Render Blueprint is still present for deployments that need the ASP.NET backend. Render's free tier does not provide persistent disk storage, so it is not suitable for shared durable inventory or order data without a paid disk.
 
 To start the backend and open the admin dashboard automatically, run `.\kinetix\start-admin.bat` from the repository root. This checks the local backend, starts it if needed, waits for its health check, and then opens `http://127.0.0.1:5087/admin.html`. Opening `admin.html` directly from File Explorer will not start the backend. The dashboard's Visitors section shows the number of browser tab sessions that have visited the home page; the count is stored in `backend/visitors.json` and does not include personal information.
 
