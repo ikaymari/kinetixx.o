@@ -39,9 +39,9 @@ This starts the backend on `http://127.0.0.1:5087` and opens the site. To open t
 
 GitHub Pages can only serve the static site; it cannot run the API or persist shared inventory. The Cloudflare Pages Function in `functions/api/[[path]].js` provides the same-origin API, and D1 stores inventory, carts, orders, registrations, announcements, admin sessions, and the visitor count. New databases start with zero inventory. Checkout only reserves stock; it does not process payments.
 
-1. Create a free Cloudflare account and a D1 database named `kinetix-db`.
-2. In the D1 database's SQL Console, run the complete contents of `kinetix/schema.sql` from this repository.
-3. Copy that database's ID into `kinetix/wrangler.toml`, replacing `REPLACE_WITH_YOUR_D1_DATABASE_ID`.
+1. Create a free Cloudflare account and a D1 database named `kinetix-db` (the Kinetix database is already created in your account).
+2. The D1 database has already been initialized with `kinetix/schema.sql`.
+3. The repository's `kinetix/wrangler.toml` is already configured with the created database ID. If you create a replacement database, update that ID to match.
 4. Create a Cloudflare Pages project connected to this GitHub repository. Set the root directory to `kinetix`, leave the build command empty, and use `.` as the build output directory. The Pages configuration discovers the API Function and D1 binding.
 5. In Pages **Settings → Variables and Secrets**, add `KINETIX_ADMIN_USERNAME` and `KINETIX_ADMIN_PASSWORD` as secrets. Use unique credentials; never put them in this repository or send them in chat.
 6. Open the Cloudflare Pages URL and set the actual inventory and prices in its Admin dashboard.
