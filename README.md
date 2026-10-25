@@ -46,6 +46,6 @@ GitHub Pages can only serve the static site; it cannot run the API or persist sh
 5. In Pages **Settings → Variables and Secrets**, add `KINETIX_ADMIN_USERNAME` and `KINETIX_ADMIN_PASSWORD` as secrets. Use unique credentials; never put them in this repository or send them in chat.
 6. Open the Cloudflare Pages URL and set the actual inventory and prices in its Admin dashboard.
 
-Use the Cloudflare Pages URL for the API-backed site. The existing `github.io` URL continues to serve a static copy and cannot use the Cloudflare API on a different origin. Once Cloudflare has assigned the Pages URL, visitors can be redirected to it by updating the repository's top-level `index.html` redirect and publishing that change. A custom domain can instead be attached in Cloudflare if you own one and configure its DNS there.
+Use the Cloudflare Pages URL for the API-backed site. The repository's top-level `index.html` redirects the existing `github.io` URL to Cloudflare so visitors reach the API-backed site. A custom domain can instead be attached in Cloudflare if you own one and configure its DNS there.
 
 Cloudflare's free plan has daily request, execution, and database quotas. If those limits are exceeded, API requests can be delayed or fail until quota resets or the plan changes. Pages limits each asset to 25 MiB; the build skips files at or above 24 MiB, so oversized videos or models will not be available on the Cloudflare site. The older Render deployment files remain available, but a persistent Render disk is not included in its free tier.
