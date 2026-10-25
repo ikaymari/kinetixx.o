@@ -32,3 +32,11 @@ This starts the backend on `http://127.0.0.1:5087` and opens the site. To open t
 - Default local admin credentials: `Admin` / `kenken`
 - Storage files live in `kinetix/backend/`
 - Real deployments should set `KINETIX_ADMIN_USERNAME` and `KINETIX_ADMIN_PASSWORD` in the server environment and serve over HTTPS
+
+## Deploy the site and backend together
+
+GitHub Pages cannot run the ASP.NET API. To run the API whenever the public website is open, deploy the complete app as one web service so the site and its API share the same origin.
+
+This repository includes a Render Blueprint in `render.yaml`. In Render, create a Blueprint from this GitHub repository and deploy the `kinetix-org-ikaymari` web service. The Blueprint builds `kinetix/Dockerfile`, attaches a persistent disk for inventory, registrations, orders, announcements, and visitor data, and prompts for `KINETIX_ADMIN_USERNAME` and `KINETIX_ADMIN_PASSWORD`. Set a unique username and a strong password in Render; do not commit credentials. Inventory on a new persistent disk starts at zero and must be set in the Admin dashboard.
+
+The Render service URL serves both the website and API. To make the existing GitHub Pages URL forward visitors to the running service, update the repository-root `index.html` redirect to that Render URL after the service has been created. GitHub Pages itself remains static and cannot start the backend.

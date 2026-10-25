@@ -1,0 +1,12 @@
+.git
+**/bin
+**/obj
+backend/cart.json
+backend/products.json
+backend/announcements.json
+backend/orders.json
+backend/customer-orders.json
+backend/registrations.json
+backend/visitors.json
+models
+videos - Shortcut.lnk

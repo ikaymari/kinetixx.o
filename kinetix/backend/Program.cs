@@ -59,13 +59,16 @@ app.MapGet("/{fileName}", (string fileName) =>
 app.MapGet("/images/{**fileName}", (string fileName) => ServeAsset("images", fileName));
 app.MapGet("/videos/{**fileName}", (string fileName) => ServeAsset("videos", fileName));
 
-var cartFile = Path.Combine(app.Environment.ContentRootPath, "cart.json");
-var productsFile = Path.Combine(app.Environment.ContentRootPath, "products.json");
-var announcementsFile = Path.Combine(app.Environment.ContentRootPath, "announcements.json");
-var ordersFile = Path.Combine(app.Environment.ContentRootPath, "orders.json");
-var customerOrdersFile = Path.Combine(app.Environment.ContentRootPath, "customer-orders.json");
-var registrationsFile = Path.Combine(app.Environment.ContentRootPath, "registrations.json");
-var visitorCountFile = Path.Combine(app.Environment.ContentRootPath, "visitors.json");
+var dataRoot = Path.GetFullPath(
+    builder.Configuration["KINETIX_DATA_PATH"] ?? app.Environment.ContentRootPath);
+Directory.CreateDirectory(dataRoot);
+var cartFile = Path.Combine(dataRoot, "cart.json");
+var productsFile = Path.Combine(dataRoot, "products.json");
+var announcementsFile = Path.Combine(dataRoot, "announcements.json");
+var ordersFile = Path.Combine(dataRoot, "orders.json");
+var customerOrdersFile = Path.Combine(dataRoot, "customer-orders.json");
+var registrationsFile = Path.Combine(dataRoot, "registrations.json");
+var visitorCountFile = Path.Combine(dataRoot, "visitors.json");
 var cartLock = new SemaphoreSlim(1, 1);
 var productLock = new SemaphoreSlim(1, 1);
 var announcementLock = new SemaphoreSlim(1, 1);
@@ -600,7 +603,7 @@ app.MapPost("/api/admin/login", (AdminLoginRequest request, HttpContext context)
     context.Response.Cookies.Append("kinetix-admin-session", token, new CookieOptions
     {
         HttpOnly = true,
-        Secure = context.Request.IsHttps,
+        Secure = !app.Environment.IsDevelopment() || context.Request.IsHttps,
         SameSite = SameSiteMode.Strict,
         Path = "/",
         Expires = expiresAt
